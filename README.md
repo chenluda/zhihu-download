@@ -17,3 +17,4 @@
 ```
 python app.py
 ```
+![image](https://github.com/chenluda/zhihu-download/assets/45784833/60e0d85b-8f48-493f-ac1f-e87e2f0738a2)
