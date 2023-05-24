@@ -1,7 +1,7 @@
 '''
 Description: 将知乎专栏文章转换为 Markdown 文件保存到本地
 Version: 1.0
-Author: 陈路达
+Author: Glenn
 Email: chenluda01@outlook.com
 Date: 2023-04-18 10:48:38
 FilePath: main.py
