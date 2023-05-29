@@ -7,7 +7,6 @@ Date: 2023-04-18 10:48:38
 FilePath: main.py
 Copyright (c) 2022 by Kust-BME, All Rights Reserved. 
 '''
-
 import os
 import re
 import urllib.parse
@@ -43,17 +42,10 @@ def judge_zhihu_type(url):
     """
     判断url类型
     """
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
-
-    if soup.text.find("知乎专栏") != -1:
-        # 如果是专栏，将所有文章放在一个以专栏标题命名的文件夹中
-        title = soup.text.split('-')[0].strip()
-        folder_name = get_valid_filename(title)
-        os.makedirs(folder_name, exist_ok=True)
-        os.chdir(folder_name)
+    if url.find("column") != -1:
+        # 如果是专栏
         parse_zhihu_column(url)
-
+        
     elif url.find("answer") != -1:
         # 如果是回答
         parse_zhihu_answer(url)
@@ -135,14 +127,12 @@ def parse_zhihu_article(url):
     """
     # 发送GET请求获取网页内容
     response = requests.get(url)
-
     # 解析HTML
     soup = BeautifulSoup(response.content, "html.parser")
-
     # 找到文章标题和内容所在的元素
     title_element = soup.select_one("h1.Post-Title")
-    content_element = soup.select_one("div.Post-RichText")
-    author = soup.select_one('div.AuthorInfo > div.AuthorInfo-content > div.AuthorInfo-head').text.strip()
+    content_element = soup.select_one("div.Post-RichTextContainer")
+    author = soup.select_one('div.AuthorInfo').find('meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
     save_and_transform(title_element, content_element, author, url)
@@ -152,16 +142,14 @@ def parse_zhihu_answer(url):
     """
     解析知乎回答并保存为 Markdown 格式文件
     """
-    # 发送 GET 请求获取网页内容
+    # 发送GET请求获取网页内容
     response = requests.get(url)
-
-    # 解析 HTML
+    # 解析HTML
     soup = BeautifulSoup(response.content, "html.parser")
-
     # 找到回答标题、内容、作者所在的元素
     title_element = soup.select_one("h1.QuestionHeader-title")
     content_element = soup.select_one("div.RichContent-inner")
-    author = soup.select_one('div.AuthorInfo > div.AuthorInfo-content > div.AuthorInfo-head').text.strip()
+    author = soup.select_one('div.AuthorInfo').find('meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
     save_and_transform(title_element, content_element, author, url)
@@ -171,6 +159,17 @@ def parse_zhihu_column(url):
     """
     解析知乎专栏并获取所有文章链接
     """
+    # 发送GET请求获取网页内容
+    response = requests.get(url)
+    # 解析HTML
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    # 将所有文章放在一个以专栏标题命名的文件夹中
+    title = soup.text.split('-')[0].strip()
+    folder_name = get_valid_filename(title)
+    os.makedirs(folder_name, exist_ok=True)
+    os.chdir(folder_name)
+
     # 获取所有文章链接
     items = []
     url_template = "https://zhuanlan.zhihu.com/p/{id}"
@@ -194,10 +193,10 @@ def parse_zhihu_column(url):
 if __name__=="__main__":
 
     # 回答
-    # url = "https://www.zhihu.com/question/593914819/answer/2971671307"
+    # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    # url = "https://zhuanlan.zhihu.com/p/626703154"
+    # url = "https://zhuanlan.zhihu.com/p/632122055"
 
     # 专栏
     url = "https://www.zhihu.com/column/c_1620937636624703488"
