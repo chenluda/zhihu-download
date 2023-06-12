@@ -3,9 +3,9 @@ Description: 将知乎专栏文章转换为 Markdown 文件保存到本地
 Version: 1.0
 Author: Glenn
 Email: chenluda01@outlook.com
-Date: 2023-04-18 10:48:38
+Date: 2023-06-12 19:58:39
 FilePath: main.py
-Copyright (c) 2022 by Kust-BME, All Rights Reserved. 
+Copyright (c) 2023 by Kust-BME, All Rights Reserved. 
 '''
 import os
 import re
@@ -14,7 +14,6 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
-
 
 def download_image(url, save_path):
     """
@@ -65,7 +64,7 @@ def save_and_transform(title_element, content_element, author, url):
     else:
         title = "Untitled"
     # 防止文件名称太长，加载不出图像
-    markdown_title = get_valid_filename(title)[0:20]
+    markdown_title = get_valid_filename(title)[-20:-1]
     markdown_title = f"{markdown_title}_{author}"
 
     if content_element is not None:
@@ -103,6 +102,11 @@ def save_and_transform(title_element, content_element, author, url):
         for figcaption in content_element.find_all("figcaption"):
             figcaption.insert_after('\n\n')
 
+        # 将数学公式转换为由美元符号 `$` 括起来的 LaTeX 格式
+        for math_span in content_element.select("span.ztext-math"):
+            latex_formula = math_span['data-tex']
+            math_span.replace_with(f"${latex_formula}$")
+
         # 获取回答文本内容
         content = content_element.decode_contents().strip()
         # 转换为 markdown
@@ -114,7 +118,7 @@ def save_and_transform(title_element, content_element, author, url):
     if content:
         markdown = f"# {title}\n\n **Author:** [{author}]\n\n **Link:** [{url}]\n\n{content}"
     else:
-        markdown = f"# {title}\n\nContent is empty."
+        markdown = f"# {title}\n\n Content is empty."
 
     # 保存 Markdown 文件
     with open(f"{markdown_title}.md", "w", encoding="utf-8") as f:
@@ -196,9 +200,9 @@ if __name__=="__main__":
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    # url = "https://zhuanlan.zhihu.com/p/632122055"
+    url = "https://zhuanlan.zhihu.com/p/636409651"
 
     # 专栏
-    url = "https://www.zhihu.com/column/c_1620937636624703488"
+    # url = "https://www.zhihu.com/column/c_1649842617335672832"
 
     judge_zhihu_type(url)
