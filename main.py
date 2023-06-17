@@ -43,15 +43,17 @@ def judge_zhihu_type(url):
     """
     if url.find("column") != -1:
         # 如果是专栏
-        parse_zhihu_column(url)
+        title = parse_zhihu_column(url)
         
     elif url.find("answer") != -1:
         # 如果是回答
-        parse_zhihu_answer(url)
+        title = parse_zhihu_answer(url)
         
     else:
         # 如果是单篇文章
-        parse_zhihu_article(url)
+        title = parse_zhihu_article(url)
+
+    return title
 
 
 def save_and_transform(title_element, content_element, author, url):
@@ -124,6 +126,8 @@ def save_and_transform(title_element, content_element, author, url):
     with open(f"{markdown_title}.md", "w", encoding="utf-8") as f:
         f.write(markdown)
 
+    return markdown_title
+
 
 def parse_zhihu_article(url):
     """
@@ -139,7 +143,9 @@ def parse_zhihu_article(url):
     author = soup.select_one('div.AuthorInfo').find('meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
-    save_and_transform(title_element, content_element, author, url)
+    markdown_title = save_and_transform(title_element, content_element, author, url)
+
+    return markdown_title
 
 
 def parse_zhihu_answer(url):
@@ -156,7 +162,9 @@ def parse_zhihu_answer(url):
     author = soup.select_one('div.AuthorInfo').find('meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
-    save_and_transform(title_element, content_element, author, url)
+    markdown_title = save_and_transform(title_element, content_element, author, url)
+
+    return markdown_title
 
 
 def parse_zhihu_column(url):
@@ -192,6 +200,8 @@ def parse_zhihu_column(url):
     # 遍历所有文章链接，转换为Markdown并保存到本地
     for article_link in article_links:
         parse_zhihu_article(article_link)
+
+    return folder_name
 
 
 if __name__=="__main__":
