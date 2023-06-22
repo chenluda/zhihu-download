@@ -233,4 +233,4 @@ if __name__ == "__main__":
     # url = "https://www.zhihu.com/column/c_1649842617335672832"
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
-    judge_zhihu_type(url, hexo_uploader=True)
+    judge_zhihu_type(url, hexo_uploader=False)
