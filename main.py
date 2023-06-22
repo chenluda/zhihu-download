@@ -67,7 +67,7 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
     else:
         title = "Untitled"
     # 防止文件名称太长，加载不出图像
-    markdown_title = get_valid_filename(title)[-20:-1]
+    markdown_title = get_valid_filename(title[-20:-1])
     markdown_title = f"{markdown_title}_{author}"
 
     if content_element is not None:
