@@ -34,6 +34,9 @@ def get_valid_filename(s):
     """
     将字符串转换为有效的文件名
     """
+    # 检查第一个字符是否为特殊符号或数字
+    if s and (not s[0].isalpha() or s[0].isdigit()):
+        s = s[1:]
     s = str(s).strip().replace(' ', '_')
     return re.sub(r'(?u)[^-\w_]', '', s)
 
