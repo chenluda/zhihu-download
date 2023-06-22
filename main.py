@@ -15,6 +15,7 @@ import requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 
+
 def download_image(url, save_path):
     """
     从指定url下载图片并保存到本地
@@ -37,31 +38,31 @@ def get_valid_filename(s):
     return re.sub(r'(?u)[^-\w_]', '', s)
 
 
-def judge_zhihu_type(url):
+def judge_zhihu_type(url, hexo_uploader=False):
     """
     判断url类型
     """
     if url.find("column") != -1:
         # 如果是专栏
-        title = parse_zhihu_column(url)
-        
+        title = parse_zhihu_column(url, hexo_uploader)
+
     elif url.find("answer") != -1:
         # 如果是回答
-        title = parse_zhihu_answer(url)
-        
+        title = parse_zhihu_answer(url, hexo_uploader)
+
     else:
         # 如果是单篇文章
-        title = parse_zhihu_article(url)
+        title = parse_zhihu_article(url, hexo_uploader)
 
     return title
 
 
-def save_and_transform(title_element, content_element, author, url):
+def save_and_transform(title_element, content_element, author, url, hexo_uploader):
     """
     转化并保存为 Markdown 格式文件
     """
     # 获取标题和内容
-    if title_element is not None: 
+    if title_element is not None:
         title = title_element.text.strip()
     else:
         title = "Untitled"
@@ -85,14 +86,14 @@ def save_and_transform(title_element, content_element, author, url):
                 continue
 
             img_name = urllib.parse.quote(os.path.basename(img_url))
-            img_path = f"{markdown_title}_files/{img_name}"
+            img_path = f"{markdown_title}/{img_name}"
 
             # 如果图片链接中 .jpg 后面还有字符串则直接截停
             if img_path.find('.jpg') + 3 != len(img_path) - 1:
                 img_path = img_path[0: img_path.find('.jpg') + 4]
 
             img["src"] = img_path
-            
+
             # 下载图片并保存到本地
             os.makedirs(os.path.dirname(img_path), exist_ok=True)
             download_image(img_url, img_path)
@@ -104,15 +105,27 @@ def save_and_transform(title_element, content_element, author, url):
         for figcaption in content_element.find_all("figcaption"):
             figcaption.insert_after('\n\n')
 
-        # 将数学公式转换为由美元符号 `$` 括起来的 LaTeX 格式
+        # 提取并存储数学公式
+        math_formulas = []
         for math_span in content_element.select("span.ztext-math"):
             latex_formula = math_span['data-tex']
-            math_span.replace_with(f"${latex_formula}$")
+            math_formulas.append(latex_formula)
+            # 使用特殊标记标记位置
+            math_span.replace_with("@@MATH@@")
 
         # 获取回答文本内容
         content = content_element.decode_contents().strip()
         # 转换为 markdown
         content = md(content)
+
+        # 将特殊标记替换为 LaTeX 数学公式
+        for formula in math_formulas:
+            if hexo_uploader:
+                content = content.replace(
+                    "@@MATH@@", "$" + "{% raw %}" + formula + "{% endraw %}" + "$", 1)
+            else:
+                content = content.replace("@@MATH@@", f"${formula}$", 1)
+
     else:
         content = ""
 
@@ -129,7 +142,7 @@ def save_and_transform(title_element, content_element, author, url):
     return markdown_title
 
 
-def parse_zhihu_article(url):
+def parse_zhihu_article(url, hexo_uploader):
     """
     解析知乎文章并保存为Markdown格式文件
     """
@@ -140,15 +153,17 @@ def parse_zhihu_article(url):
     # 找到文章标题和内容所在的元素
     title_element = soup.select_one("h1.Post-Title")
     content_element = soup.select_one("div.Post-RichTextContainer")
-    author = soup.select_one('div.AuthorInfo').find('meta', {'itemprop': 'name'}).get('content')
+    author = soup.select_one('div.AuthorInfo').find(
+        'meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
-    markdown_title = save_and_transform(title_element, content_element, author, url)
+    markdown_title = save_and_transform(
+        title_element, content_element, author, url, hexo_uploader)
 
     return markdown_title
 
 
-def parse_zhihu_answer(url):
+def parse_zhihu_answer(url, hexo_uploader):
     """
     解析知乎回答并保存为 Markdown 格式文件
     """
@@ -159,15 +174,17 @@ def parse_zhihu_answer(url):
     # 找到回答标题、内容、作者所在的元素
     title_element = soup.select_one("h1.QuestionHeader-title")
     content_element = soup.select_one("div.RichContent-inner")
-    author = soup.select_one('div.AuthorInfo').find('meta', {'itemprop': 'name'}).get('content')
+    author = soup.select_one('div.AuthorInfo').find(
+        'meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
-    markdown_title = save_and_transform(title_element, content_element, author, url)
+    markdown_title = save_and_transform(
+        title_element, content_element, author, url, hexo_uploader)
 
     return markdown_title
 
 
-def parse_zhihu_column(url):
+def parse_zhihu_column(url, hexo_uploader):
     """
     解析知乎专栏并获取所有文章链接
     """
@@ -199,20 +216,21 @@ def parse_zhihu_column(url):
 
     # 遍历所有文章链接，转换为Markdown并保存到本地
     for article_link in article_links:
-        parse_zhihu_article(article_link)
+        parse_zhihu_article(article_link, hexo_uploader)
 
     return folder_name
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     # 回答
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    url = "https://zhuanlan.zhihu.com/p/636409651"
+    url = "https://zhuanlan.zhihu.com/p/634511745"
 
     # 专栏
     # url = "https://www.zhihu.com/column/c_1649842617335672832"
 
-    judge_zhihu_type(url)
+    # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
+    judge_zhihu_type(url, hexo_uploader=True)
