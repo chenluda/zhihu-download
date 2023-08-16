@@ -7,15 +7,23 @@
 * 2023-06-22 11:07:51 Update main.py：修改代码，为数学公式添加转义符号以免 hexo 无法识别（可选）。
 
 ---
+```
+flask 1.1.2
+flask-cors 4.0.0
+python 3.9
+```
 
-最近想构建一个本地知识库。
+flask 2.2 以上版本需要将 app.py 中第 46 行，
 
-需要从知乎下载文章、专栏、回答，并以 Markdown 格式保存到本地。
+```
+return send_file(zip_data, attachment_filename= markdown_title + ".zip", as_attachment=True)
+```
 
-自己写了个脚本，
+改为：
 
-可以判断给定 url 的类型，是文章、专栏还是回答，三种类型的处理方式不同；
-然后将图片保存至本地，并将转换的 Markdown 中图片 url 更换为本地路径，使图片可以在本地显示。
+```
+return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
+```
 
 ---
 
@@ -23,4 +31,5 @@
 ```
 python app.py
 ```
+
 
