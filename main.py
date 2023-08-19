@@ -108,6 +108,16 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
         for figcaption in content_element.find_all("figcaption"):
             figcaption.insert_after('\n\n')
 
+        # 处理卡片链接
+        for card_link in content_element.find_all("a", class_="LinkCard"):
+            article_url = card_link['href']
+            article_title = card_link.select_one(".LinkCard-title").text.strip()
+            if article_title == "":
+                article_title = article_url
+            markdown_link = f"[{article_title}]({article_url})"
+            card_link.insert_after('\n\n')
+            card_link.replace_with(markdown_link)
+
         # 提取并存储数学公式
         math_formulas = []
         for math_span in content_element.select("span.ztext-math"):
@@ -116,7 +126,7 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
             # 使用特殊标记标记位置
             math_span.replace_with("@@MATH@@")
 
-        # 获取回答文本内容
+        # 获取文本内容
         content = content_element.decode_contents().strip()
         # 转换为 markdown
         content = md(content)
@@ -127,7 +137,11 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
                 content = content.replace(
                     "@@MATH@@", "$" + "{% raw %}" + formula + "{% endraw %}" + "$", 1)
             else:
-                content = content.replace("@@MATH@@", f"${formula}$", 1)
+                # 如果公式中包含 $ 则不再添加 $ 符号
+                if formula.find('$') != -1:
+                    content = content.replace("@@MATH@@", f"{formula}", 1)
+                else:
+                    content = content.replace("@@MATH@@", f"${formula}$", 1)
 
     else:
         content = ""
@@ -230,7 +244,7 @@ if __name__ == "__main__":
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    url = "https://zhuanlan.zhihu.com/p/634511745"
+    url = "https://zhuanlan.zhihu.com/p/618270933"
 
     # 专栏
     # url = "https://www.zhihu.com/column/c_1649842617335672832"
