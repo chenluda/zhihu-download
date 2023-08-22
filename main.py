@@ -111,9 +111,16 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
         # 处理卡片链接
         for card_link in content_element.find_all("a", class_="LinkCard"):
             article_url = card_link['href']
-            article_title = card_link.select_one(".LinkCard-title").text.strip()
-            if article_title == "":
-                article_title = article_url
+            article_title = card_link['data-text']
+            
+            # 如果没有标题，则使用span代替
+            if not article_title:
+                article_title_span = card_link.select_one(".LinkCard-title")
+                if article_title_span:
+                    article_title = article_title_span.text.strip()
+                else:
+                    article_title = article_url # 如果没有span，则使用链接代替
+            
             markdown_link = f"[{article_title}]({article_url})"
             card_link.insert_after('\n\n')
             card_link.replace_with(markdown_link)
