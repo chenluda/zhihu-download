@@ -88,7 +88,7 @@ def index():
             shutil.rmtree(tmpdir)
 
         # 使用 send_file 发送内存中的 ZIP 文件
-        return send_file(zip_data, download_name = f"{markdown_title}.zip", as_attachment=True)
+        return send_file(zip_data, attachment_filename = f"{markdown_title}.zip", as_attachment=True)
 
     return render_template("index.html")
 
