@@ -43,7 +43,11 @@
 #             shutil.rmtree(tmpdir)
 
 #         # 使用 send_file 发送内存中的 ZIP 文件
-#         return send_file(zip_data, from flask 
+#         return send_file(zip_data, = markdown_title + ".zip", as_attachment=True) 
+    # return render_template("index.html")
+
+# if __name__ == "__main__":
+#     app.run(debug=False)
                          
 from flask import Flask, render_template, request, send_file
 import io
@@ -93,11 +97,6 @@ def index():
         # return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
         return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
     return render_template("index.html")
-
-# if __name__ == "__main__":
-#     app.run(debug=False)= markdown_title + ".zip", as_attachment=True)
-
-#     return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(debug=False)
