@@ -1,8 +1,9 @@
+<div align="center">
+  <h2>知乎专栏文章 Markdown 转换器</h2>
+  <p>一键将知乎专栏文章转换并保存为 Markdown 文件</p>
+</div>
+
 ![image](https://github.com/chenluda/zhihu-download/assets/45784833/5a5c27fb-4419-43fd-9ab9-69bdbe6667fe)
-
-# <div align=center> 将知乎专栏文章转换为 Markdown 文件保存到本地 </div>
-
----
 
 ## 运行环境
 
@@ -26,24 +27,10 @@ python app.py
 > return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
 > ```
 
+## 更新日志
 
-
-
-
-
-
-
----
-
-## bug 修复日志
-
-* 2023-05-29 14:20:21 Update main.py：修改代码，以适应最新的知乎 HTML 结构；
-* 2023-06-12 19:59:31 Update main.py：修改代码，修复数学公式没有转换成 Markdown 格式的 bug；将文件名改为标题的后 20 个字符，以防重复；
-* 2023-06-22 11:07:51 Update main.py：修改代码，为数学公式添加转义符号以免 hexo 无法识别（可选）；
-* 2023-08-19 10:30:00 Update main.py：修改代码，修复数学公式出现三 $ 的 bug；获取卡片链接；
-* 2023-10-27 15:21:15 Update main.py：修改代码，修复 bug - 1）main.py 的 46 行重复粘贴；2) 有些文章图片为 png 格式，无法下载；3）在文件名称前加该文章的编辑时间；4）增加专栏文章下载的断点续传；5）对卡片链接进行优化，删除知乎安全链接前缀。感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！
-
-
-
-
-
+* 2023-05-29：适应知乎最新 HTML 结构。
+* 2023-06-12：修复数学公式 Markdown 转换 bug。
+* 2023-06-22：为数学公式添加转义符号，增强兼容性。
+* 2023-08-19：修复公式和卡片链接相关的多项 bug。
+* 2023-10-27：优化代码，增加断点续传功能，改进图片处理和链接优化。（感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！）
