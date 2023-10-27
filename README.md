@@ -1,6 +1,9 @@
 <div align="center">
   <h2>知乎专栏文章 Markdown 转换器</h2>
   <p>一键将知乎专栏文章转换并保存为 Markdown 文件</p>
+  <a href="#">
+    <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
+  </a>
 </div>
 
 ![image](https://github.com/chenluda/zhihu-download/assets/45784833/5a5c27fb-4419-43fd-9ab9-69bdbe6667fe)
