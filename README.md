@@ -52,7 +52,7 @@ python app.py
 > ``` python
 > markdown_title = get_valid_filename(title[-20:-1])
 > ```
-> 将第 89 行的注释打开
+> 将第 89 行的注释打开：
 > ``` python
 > markdown_title = get_valid_filename(title)
 > ```
