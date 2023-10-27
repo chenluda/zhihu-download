@@ -46,6 +46,17 @@ python app.py
 > return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
 > ```
 
+> **Note**
+>
+> 因为我们遇到过文件名太长，导致图片不能显示的情况，所以我们刻意限制了文件名的长度，但多数情况下是可以使用全名的，如果需要使用全名，请将 main.py 中的第 87 行注释掉，
+> ``` python
+> markdown_title = get_valid_filename(title[-20:-1])
+> ```
+> 将第 89 行的注释打开
+> ``` python
+> markdown_title = get_valid_filename(title)
+> ```
+
 ## 更新日志
 
 * 2023-05-29：适应知乎最新 HTML 结构。
