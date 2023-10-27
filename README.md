@@ -4,6 +4,37 @@
 
 ---
 
+## 运行环境
+
+```
+flask 1.1.2
+flask-cors 4.0.0
+python 3.9
+```
+运行代码
+```
+python app.py
+```
+> **Note**
+>
+> flask 2.2 以上版本需要将 app.py 中第 46 行，
+> ``` python
+> return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
+> ```
+> 改为：
+> ``` python
+> return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
+> ```
+
+
+
+
+
+
+
+
+---
+
 ## bug 修复日志
 
 * 2023-05-29 14:20:21 Update main.py：修改代码，以适应最新的知乎 HTML 结构；
@@ -14,33 +45,5 @@
 
 
 
----
-
-## 运行环境
-
-```
-flask 1.1.2
-flask-cors 4.0.0
-python 3.9
-```
-
-flask 2.2 以上版本需要将 app.py 中第 46 行，
-
-```
-return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
-```
-
-改为：
-
-```
-return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
-```
-
----
-
-运行代码
-```
-python app.py
-```
 
 
