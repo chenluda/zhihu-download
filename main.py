@@ -3,7 +3,7 @@ Description: 将知乎专栏文章转换为 Markdown 文件保存到本地
 Version: 1.0
 Author: Glenn
 Email: chenluda01@outlook.com
-Date: 2023-06-12 19:58:39
+Date: 2023-10-27 15:20:45
 FilePath: main.py
 Copyright (c) 2023 by Kust-BME, All Rights Reserved. 
 '''
@@ -14,6 +14,19 @@ import urllib.parse
 import requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
+from urllib.parse import unquote, urlparse, parse_qs
+
+
+def get_article_date(soup):
+    """
+    从页面中提取文章日期
+    """
+    date_element = soup.select_one("div.ContentItem-time")
+    if date_element:
+        match = re.search(r"\d{4}-\d{2}-\d{2}", date_element.get_text())
+        if match:
+            return match.group().replace('-', '')
+    return "Unknown"
 
 
 def download_image(url, save_path):
@@ -60,7 +73,7 @@ def judge_zhihu_type(url, hexo_uploader=False):
     return title
 
 
-def save_and_transform(title_element, content_element, author, url, hexo_uploader):
+def save_and_transform(title_element, content_element, author, url, hexo_uploader, date=None):
     """
     转化并保存为 Markdown 格式文件
     """
@@ -69,9 +82,16 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
         title = title_element.text.strip()
     else:
         title = "Untitled"
+
     # 防止文件名称太长，加载不出图像
     markdown_title = get_valid_filename(title[-20:-1])
-    markdown_title = f"{markdown_title}_{author}"
+    # 如果觉得文件名太怪不好管理，那就使用全名
+    # markdown_title = get_valid_filename(title)
+
+    if date:
+        markdown_title = f"({date}){markdown_title}_{author}"
+    else:
+        markdown_title = f"{markdown_title}_{author}"
 
     if content_element is not None:
         # 将 css 样式移除
@@ -91,9 +111,14 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
             img_name = urllib.parse.quote(os.path.basename(img_url))
             img_path = f"{markdown_title}/{img_name}"
 
-            # 如果图片链接中 .jpg 后面还有字符串则直接截停
-            if img_path.find('.jpg') + 3 != len(img_path) - 1:
-                img_path = img_path[0: img_path.find('.jpg') + 4]
+            extensions = ['.jpg', '.png']  # 可以在此列表中添加更多的图片格式
+
+            # 如果图片链接中图片后缀后面还有字符串则直接截停
+            for ext in extensions:
+                index = img_path.find(ext)
+                if index != -1:
+                    img_path = img_path[:index + len(ext)]
+                    break  # 找到第一个匹配的格式后就跳出循环
 
             img["src"] = img_path
 
@@ -110,17 +135,25 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
 
         # 处理卡片链接
         for card_link in content_element.find_all("a", class_="LinkCard"):
-            article_url = card_link['href']
-            article_title = card_link['data-text']
-            
+            original_url = card_link['href']
+
+            # 解析并解码 URL
+            parsed_url = urlparse(original_url)
+            query_params = parse_qs(parsed_url.query)
+            target_url = query_params.get('target', [original_url])[
+                0]  # 使用原 URL 作为默认值
+            article_url = unquote(target_url)  # 解码 URL
+
+            article_title = card_link.get('data-text', '')
+
             # 如果没有标题，则使用span代替
             if not article_title:
                 article_title_span = card_link.select_one(".LinkCard-title")
                 if article_title_span:
                     article_title = article_title_span.text.strip()
                 else:
-                    article_title = article_url # 如果没有span，则使用链接代替
-            
+                    article_title = article_url  # 如果没有span，则使用链接代替
+
             markdown_link = f"[{article_title}]({article_url})"
             card_link.insert_after('  ')
             card_link.replace_with(markdown_link)
@@ -177,12 +210,13 @@ def parse_zhihu_article(url, hexo_uploader):
     # 找到文章标题和内容所在的元素
     title_element = soup.select_one("h1.Post-Title")
     content_element = soup.select_one("div.Post-RichTextContainer")
+    date = get_article_date(soup)
     author = soup.select_one('div.AuthorInfo').find(
         'meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader)
+        title_element, content_element, author, url, hexo_uploader, date)
 
     return markdown_title
 
@@ -198,19 +232,39 @@ def parse_zhihu_answer(url, hexo_uploader):
     # 找到回答标题、内容、作者所在的元素
     title_element = soup.select_one("h1.QuestionHeader-title")
     content_element = soup.select_one("div.RichContent-inner")
+    date = get_article_date(soup)
     author = soup.select_one('div.AuthorInfo').find(
         'meta', {'itemprop': 'name'}).get('content')
 
     # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader)
+        title_element, content_element, author, url, hexo_uploader, date)
 
     return markdown_title
 
 
+def load_processed_articles(filename):
+    """
+    从文件加载已处理文章的ID。
+    """
+    if not os.path.exists(filename):
+        return set()
+    with open(filename, 'r', encoding='utf-8') as file:
+        return set(file.read().splitlines())
+
+
+def save_processed_article(filename, article_id):
+    """
+    将处理过的文章ID保存到文件。
+    """
+    with open(filename, 'a', encoding='utf-8') as file:
+        file.write(article_id + '\n')
+
+
 def parse_zhihu_column(url, hexo_uploader):
     """
-    解析知乎专栏并获取所有文章链接
+    解析知乎专栏并获取所有文章链接，并每累积到10篇文章时，使用 parse_zhihu_article 函数进行解析。
+    断点续传功能，记录已处理的文章ID。
     """
     # 发送GET请求获取网页内容
     response = requests.get(url)
@@ -223,24 +277,36 @@ def parse_zhihu_column(url, hexo_uploader):
     os.makedirs(folder_name, exist_ok=True)
     os.chdir(folder_name)
 
+    processed_filename = "processed_articles.txt"
+    processed_articles = load_processed_articles(processed_filename)
+
     # 获取所有文章链接
-    items = []
     url_template = "https://zhuanlan.zhihu.com/p/{id}"
     offset = 0
+    total_parsed = 0
+
     while True:
         api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?limit=10&offset={offset}"
         response = requests.get(f"https://www.zhihu.com{api_url}")
         data = response.json()
-        items += data["data"]
+
+        for item in data["data"]:
+            article_id = str(item["id"])
+            if article_id in processed_articles:
+                continue
+
+            article_link = url_template.format(id=article_id)
+            parse_zhihu_article(article_link, hexo_uploader)
+            save_processed_article(processed_filename, article_id)
+
+            total_parsed += 1
+            if total_parsed % 10 == 0:
+                print(f"已处理 {total_parsed} 篇文章.")
+
         if data["paging"]["is_end"]:
             break
+
         offset += 10
-
-    article_links = [url_template.format(id=item["id"]) for item in items]
-
-    # 遍历所有文章链接，转换为Markdown并保存到本地
-    for article_link in article_links:
-        parse_zhihu_article(article_link, hexo_uploader)
 
     return folder_name
 
@@ -251,10 +317,10 @@ if __name__ == "__main__":
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    url = "https://zhuanlan.zhihu.com/p/618270933"
+    # url = "https://zhuanlan.zhihu.com/p/621156038"
 
     # 专栏
-    # url = "https://www.zhihu.com/column/c_1649842617335672832"
+    url = "https://www.zhihu.com/column/c_1285538965131460608"
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
     judge_zhihu_type(url, hexo_uploader=False)
