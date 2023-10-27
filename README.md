@@ -2,13 +2,13 @@
   <h2>知乎专栏文章 Markdown 转换器</h2>
   <p>一键将知乎专栏文章转换并保存为 Markdown 文件</p>
   <a href="#">
-    <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
-  </a>
-  <a href="#">
     <img alt="Python 3.9" src="https://img.shields.io/badge/python-3.9-blue.svg" />
   </a>
   <a href="#">
     <img alt="Flask 2.3.3" src="https://img.shields.io/badge/flask-2.3.3-blue.svg" />
+  </a>
+  <a href="#">
+    <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
 </div>
 
