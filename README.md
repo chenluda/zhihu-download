@@ -11,7 +11,7 @@
 ## 运行环境
 
 ```
-flask 1.1.2
+flask 2.3.3
 flask-cors 4.0.0
 python 3.9
 ```
@@ -21,13 +21,13 @@ python app.py
 ```
 > **Note**
 >
-> flask 2.2 以上版本需要将 app.py 中第 46 行，
+> flask 2.2 以下版本需要将 app.py 中第 46 行，
 > ``` python
-> return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
+> return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
 > ```
 > 改为：
 > ``` python
-> return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
+> return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
 > ```
 
 ## 更新日志
