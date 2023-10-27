@@ -4,6 +4,12 @@
   <a href="#">
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
+  <a href="#">
+    <img alt="Python 3.9" src="https://img.shields.io/badge/python-3.9-blue.svg" />
+  </a>
+  <a href="#">
+    <img alt="Flask 2.3.3" src="https://img.shields.io/badge/flask-2.3.3-blue.svg" />
+  </a>
 </div>
 
 ![image](https://github.com/chenluda/zhihu-download/assets/45784833/5a5c27fb-4419-43fd-9ab9-69bdbe6667fe)
