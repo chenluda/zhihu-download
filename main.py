@@ -102,11 +102,11 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
             download_image(img_url, img_path)
 
             # 在图片后插入换行符
-            img.insert_after('\n\n')
+            img.insert_after('  ')
 
         # 在 </figcaption> 后面加上换行符
         for figcaption in content_element.find_all("figcaption"):
-            figcaption.insert_after('\n\n')
+            figcaption.insert_after('  ')
 
         # 处理卡片链接
         for card_link in content_element.find_all("a", class_="LinkCard"):
@@ -122,7 +122,7 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
                     article_title = article_url # 如果没有span，则使用链接代替
             
             markdown_link = f"[{article_title}]({article_url})"
-            card_link.insert_after('\n\n')
+            card_link.insert_after('  ')
             card_link.replace_with(markdown_link)
 
         # 提取并存储数学公式
