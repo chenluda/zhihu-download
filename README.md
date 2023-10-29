@@ -18,7 +18,11 @@
 
 ⭐ **支持最新 HTML 结构**：持续更新以适应知乎平台的变化。
 
+![gif](https://github.com/chenluda/zhihu-download/assets/45784833/849366a0-19ac-43ff-8f13-54aff24c7df3)
+
 ⭐ **断点续传功能**：支持大体量专栏文章下载的断点续传，提高使用便利性。
+
+![gif](https://github.com/chenluda/zhihu-download/assets/45784833/9b4fd579-a492-4052-b5d8-0eb887af3a27)
 
 ⭐ **完善的数学公式支持**：特别优化了数学公式的提取和转换，保证了复杂内容的准确性和完整性。
 
