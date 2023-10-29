@@ -3,7 +3,7 @@ Description: 将知乎专栏文章转换为 Markdown 文件保存到本地
 Version: 1.0
 Author: Glenn
 Email: chenluda01@outlook.com
-Date: 2023-10-27 15:20:45
+Date: 2023-10-29 16:25:13
 FilePath: main.py
 Copyright (c) 2023 by Kust-BME, All Rights Reserved. 
 '''
@@ -15,6 +15,7 @@ import requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from urllib.parse import unquote, urlparse, parse_qs
+from tqdm import tqdm
 
 
 def get_article_date(soup):
@@ -84,9 +85,9 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
         title = "Untitled"
 
     # 防止文件名称太长，加载不出图像
-    markdown_title = get_valid_filename(title[-20:-1])
+    # markdown_title = get_valid_filename(title[-20:-1])
     # 如果觉得文件名太怪不好管理，那就使用全名
-    # markdown_title = get_valid_filename(title)
+    markdown_title = get_valid_filename(title)
 
     if date:
         markdown_title = f"({date}){markdown_title}_{author}"
@@ -262,10 +263,6 @@ def save_processed_article(filename, article_id):
 
 
 def parse_zhihu_column(url, hexo_uploader):
-    """
-    解析知乎专栏并获取所有文章链接，并每累积到10篇文章时，使用 parse_zhihu_article 函数进行解析。
-    断点续传功能，记录已处理的文章ID。
-    """
     # 发送GET请求获取网页内容
     response = requests.get(url)
     # 解析HTML
@@ -285,6 +282,17 @@ def parse_zhihu_column(url, hexo_uploader):
     offset = 0
     total_parsed = 0
 
+    # 首先获取总文章数
+    api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?limit=1&offset=0"
+    response = requests.get(f"https://www.zhihu.com{api_url}")
+    total_articles = response.json()["paging"]["totals"]
+
+    # 计算已处理的文章数
+    already_processed = len(processed_articles)
+
+    # 初始化进度条，从已处理的文章数开始
+    progress_bar = tqdm(total=total_articles, initial=already_processed, desc="解析文章")
+
     while True:
         api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?limit=10&offset={offset}"
         response = requests.get(f"https://www.zhihu.com{api_url}")
@@ -298,16 +306,14 @@ def parse_zhihu_column(url, hexo_uploader):
             article_link = url_template.format(id=article_id)
             parse_zhihu_article(article_link, hexo_uploader)
             save_processed_article(processed_filename, article_id)
-
-            total_parsed += 1
-            if total_parsed % 10 == 0:
-                print(f"已处理 {total_parsed} 篇文章.")
+            progress_bar.update(1)  # 更新进度条
 
         if data["paging"]["is_end"]:
             break
 
         offset += 10
 
+    progress_bar.close()  # 完成后关闭进度条
     return folder_name
 
 
@@ -317,7 +323,7 @@ if __name__ == "__main__":
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    # url = "https://zhuanlan.zhihu.com/p/621156038"
+    # url = "https://zhuanlan.zhihu.com/p/640559793"
 
     # 专栏
     url = "https://www.zhihu.com/column/c_1285538965131460608"
