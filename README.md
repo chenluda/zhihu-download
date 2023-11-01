@@ -68,3 +68,7 @@ python app.py
 * 2023-06-22：为数学公式添加转义符号，增强兼容性。
 * 2023-08-19：修复公式和卡片链接相关的多项 bug。
 * 2023-10-27：优化代码，增加断点续传功能，改进图片处理和链接优化。（感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！）
+
+## 趋势
+
+[![Star History Chart](https://api.star-history.com/svg?repos=chenluda/zhihu-download&type=Date)](https://star-history.com/#chenluda/zhihu-download&Date)
