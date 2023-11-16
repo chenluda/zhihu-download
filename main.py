@@ -3,7 +3,7 @@ Description: 将知乎专栏文章转换为 Markdown 文件保存到本地
 Version: 1.0
 Author: Glenn
 Email: chenluda01@outlook.com
-Date: 2023-10-29 16:25:13
+Date: 2023-11-16 20:40:49
 FilePath: main.py
 Copyright (c) 2023 by Kust-BME, All Rights Reserved. 
 '''
@@ -16,6 +16,15 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from urllib.parse import unquote, urlparse, parse_qs
 from tqdm import tqdm
+
+
+def insert_new_line(soup, element, num_breaks):
+    """
+    在指定位置插入换行符
+    """
+    for _ in range(num_breaks):
+        new_line = soup.new_tag('br')
+        element.insert_after(new_line)
 
 
 def get_article_date(soup):
@@ -74,7 +83,7 @@ def judge_zhihu_type(url, hexo_uploader=False):
     return title
 
 
-def save_and_transform(title_element, content_element, author, url, hexo_uploader, date=None):
+def save_and_transform(title_element, content_element, author, url, hexo_uploader, soup, date=None):
     """
     转化并保存为 Markdown 格式文件
     """
@@ -128,15 +137,15 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
             download_image(img_url, img_path)
 
             # 在图片后插入换行符
-            img.insert_after('  ')
+            insert_new_line(soup, img, 1)
 
-        # 在 </figcaption> 后面加上换行符
+        # 在图例后面加上换行符
         for figcaption in content_element.find_all("figcaption"):
-            figcaption.insert_after('  ')
+            insert_new_line(soup, figcaption, 2)
 
-        # 处理卡片链接
-        for card_link in content_element.find_all("a", class_="LinkCard"):
-            original_url = card_link['href']
+        # 处理链接
+        for link in content_element.find_all("a"):
+            original_url = link['href']
 
             # 解析并解码 URL
             parsed_url = urlparse(original_url)
@@ -145,19 +154,22 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
                 0]  # 使用原 URL 作为默认值
             article_url = unquote(target_url)  # 解码 URL
 
-            article_title = card_link.get('data-text', '')
+            article_title = link.get_text(strip=True)
 
             # 如果没有标题，则使用span代替
             if not article_title:
-                article_title_span = card_link.select_one(".LinkCard-title")
+                article_title_span = link.select_one(".LinkCard-title")
                 if article_title_span:
                     article_title = article_title_span.text.strip()
+                    insert_new_line(soup, link, 1)
+                    if not article_title:
+                        article_title = article_url
                 else:
-                    article_title = article_url  # 如果没有span，则使用链接代替
+                    article_title = article_url
 
             markdown_link = f"[{article_title}]({article_url})"
-            card_link.insert_after('  ')
-            card_link.replace_with(markdown_link)
+
+            link.replace_with(markdown_link)
 
         # 提取并存储数学公式
         math_formulas = []
@@ -217,7 +229,7 @@ def parse_zhihu_article(url, hexo_uploader):
 
     # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader, date)
+        title_element, content_element, author, url, hexo_uploader, soup, date)
 
     return markdown_title
 
@@ -239,7 +251,7 @@ def parse_zhihu_answer(url, hexo_uploader):
 
     # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
-        title_element, content_element, author, url, hexo_uploader, date)
+        title_element, content_element, author, url, hexo_uploader, soup, date)
 
     return markdown_title
 
@@ -263,6 +275,9 @@ def save_processed_article(filename, article_id):
 
 
 def parse_zhihu_column(url, hexo_uploader):
+    """
+    解析知乎专栏并保存为 Markdown 格式文件
+    """
     # 发送GET请求获取网页内容
     response = requests.get(url)
     # 解析HTML
@@ -315,6 +330,7 @@ def parse_zhihu_column(url, hexo_uploader):
 
     progress_bar.close()  # 完成后关闭进度条
     return folder_name
+
 
 
 if __name__ == "__main__":
