@@ -10,7 +10,7 @@
   <a href="#">
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
-  <a href="[#](https://service-js6dx7mu-1306985741.gz.apigw.tencentcs.com/)">
+  <a href="https://service-js6dx7mu-1306985741.gz.apigw.tencentcs.com/">
     <img alt="试玩地址" src="https://img.shields.io/badge/试玩地址-Website-red" />
   </a>
 </div>
