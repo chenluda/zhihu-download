@@ -111,6 +111,13 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
         for img_lazy in content_element.find_all("img", class_=lambda x: 'lazy' in x if x else True):
             img_lazy.decompose()
 
+        # 处理内容中的标题
+        for header in content_element.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
+            header_level = int(header.name[1])  # 从标签名中获取标题级别（例如，'h2' -> 2）
+            header_text = header.get_text(strip=True)  # 提取标题文本
+            markdown_header = f"{'#' * header_level} {header_text}"  # 转换为 Markdown 格式的标题
+            header.replace_with(markdown_header)
+
         # 处理回答中的图片
         for img in content_element.find_all("img"):
             # 将图片链接替换为本地路径
@@ -329,20 +336,20 @@ def parse_zhihu_column(url, hexo_uploader):
         offset += 10
 
     progress_bar.close()  # 完成后关闭进度条
+    os.remove(processed_filename)  # 删除已处理文章的ID文件
     return folder_name
 
 
-
 if __name__ == "__main__":
-
     # 回答
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    # url = "https://zhuanlan.zhihu.com/p/640559793"
+    # url = "https://zhuanlan.zhihu.com/p/614627181"
 
     # 专栏
-    url = "https://www.zhihu.com/column/c_1285538965131460608"
+    url = "https://www.zhihu.com/column/c_1704981555632713730"
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
     judge_zhihu_type(url, hexo_uploader=False)
+
