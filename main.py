@@ -341,7 +341,7 @@ if __name__ == "__main__":
     # url = "https://zhuanlan.zhihu.com/p/614627181"
 
     # 专栏
-    url = "https://zhuanlan.zhihu.com/p/24770526"
+    url = "https://www.zhihu.com/column/c_1704981555632713730"
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
     judge_zhihu_type(url, hexo_uploader=False)
