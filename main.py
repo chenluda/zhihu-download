@@ -173,11 +173,17 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
 
         # 提取并存储数学公式
         math_formulas = []
+        math_tags = []
         for math_span in content_element.select("span.ztext-math"):
             latex_formula = math_span['data-tex']
-            math_formulas.append(latex_formula)
+            
             # 使用特殊标记标记位置
-            math_span.replace_with("@@MATH@@")
+            if latex_formula.find("\\tag") != -1:
+                math_tags.append(latex_formula)
+                math_span.replace_with("@@MATH_FORMULA@@")
+            else:
+                math_formulas.append(latex_formula)
+                math_span.replace_with("@@MATH@@")
 
         # 获取文本内容
         content = content_element.decode_contents().strip()
@@ -195,6 +201,20 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
                     content = content.replace("@@MATH@@", f"{formula}", 1)
                 else:
                     content = content.replace("@@MATH@@", f"${formula}$", 1)
+        
+        for formula in math_tags:
+            if hexo_uploader:
+                content = content.replace(
+                    "@@MATH\_FORMULA@@",
+                    "$$" + "{% raw %}" + formula + "{% endraw %}" + "$$",
+                    1,
+                )
+            else:
+                # 如果公式中包含 $ 则不再添加 $ 符号
+                if formula.find("$") != -1:
+                    content = content.replace("@@MATH\_FORMULA@@", f"{formula}", 1)
+                else:
+                    content = content.replace("@@MATH\_FORMULA@@", f"$${formula}$$", 1)
 
     else:
         content = ""
