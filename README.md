@@ -78,6 +78,7 @@ python app.py
 * 2023-10-27：优化代码，增加断点续传功能，改进图片处理和链接优化。（感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！）
 * 2023-11-16：优化链接等格式。
 * 2023-11-22：更改内容标题格式。
+* 2023-12-27：更改内容标题格式；增加对数学公式中 `\tag{*}` 的特殊处理。（感谢 [korruz](https://github.com/korruz) 的意见！）
 
 ## 趋势
 
