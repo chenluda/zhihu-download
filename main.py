@@ -115,7 +115,9 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
         for header in content_element.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
             header_level = int(header.name[1])  # 从标签名中获取标题级别（例如，'h2' -> 2）
             header_text = header.get_text(strip=True)  # 提取标题文本
-            markdown_header = f"{'#' * header_level} {header_text}"  # 转换为 Markdown 格式的标题
+            # 转换为 Markdown 格式的标题
+            markdown_header = f"{'#' * header_level} {header_text}"
+            insert_new_line(soup, header, 1)
             header.replace_with(markdown_header)
 
         # 处理回答中的图片
@@ -180,11 +182,19 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
 
         # 提取并存储数学公式
         math_formulas = []
+        math_tags = []
         for math_span in content_element.select("span.ztext-math"):
             latex_formula = math_span['data-tex']
-            math_formulas.append(latex_formula)
+            # math_formulas.append(latex_formula)
+            # math_span.replace_with("@@MATH@@")
             # 使用特殊标记标记位置
-            math_span.replace_with("@@MATH@@")
+            if latex_formula.find("\\tag") != -1:
+                math_tags.append(latex_formula)
+                insert_new_line(soup, math_span, 1)
+                math_span.replace_with("@@MATH_FORMULA@@")
+            else:
+                math_formulas.append(latex_formula)
+                math_span.replace_with("@@MATH@@")
 
         # 获取文本内容
         content = content_element.decode_contents().strip()
@@ -202,6 +212,22 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
                     content = content.replace("@@MATH@@", f"{formula}", 1)
                 else:
                     content = content.replace("@@MATH@@", f"${formula}$", 1)
+
+        for formula in math_tags:
+            if hexo_uploader:
+                content = content.replace(
+                    "@@MATH\_FORMULA@@",
+                    "$$" + "{% raw %}" + formula + "{% endraw %}" + "$$",
+                    1,
+                )
+            else:
+                # 如果公式中包含 $ 则不再添加 $ 符号
+                if formula.find("$") != -1:
+                    content = content.replace(
+                        "@@MATH\_FORMULA@@", f"{formula}", 1)
+                else:
+                    content = content.replace(
+                        "@@MATH\_FORMULA@@", f"$${formula}$$", 1)
 
     else:
         content = ""
@@ -313,7 +339,8 @@ def parse_zhihu_column(url, hexo_uploader):
     already_processed = len(processed_articles)
 
     # 初始化进度条，从已处理的文章数开始
-    progress_bar = tqdm(total=total_articles, initial=already_processed, desc="解析文章")
+    progress_bar = tqdm(total=total_articles,
+                        initial=already_processed, desc="解析文章")
 
     while True:
         api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?limit=10&offset={offset}"
@@ -345,10 +372,10 @@ if __name__ == "__main__":
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
     # 文章
-    # url = "https://zhuanlan.zhihu.com/p/614627181"
+    url = "https://zhuanlan.zhihu.com/p/114538417"
 
     # 专栏
-    url = "https://www.zhihu.com/column/c_1704981555632713730"
+    # url = "https://www.zhihu.com/column/c_1704981555632713730"
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
     judge_zhihu_type(url, hexo_uploader=False)
