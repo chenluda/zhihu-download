@@ -2,6 +2,7 @@ import io
 import os
 import shutil
 import zipfile
+from flask import Flask, request, render_template, send_file
 from main import *
 
 app = Flask(__name__)
@@ -39,7 +40,10 @@ def index():
         if os.path.exists(zip_path):
             os.remove(zip_path)
         if os.path.exists(tmpdir):
-            shutil.rmtree(tmpdir)
+            try:
+                shutil.rmtree(tmpdir)
+            except:
+                print(f"Unable to delete temporary directory: {tmpdir}")
 
         # 使用 send_file 发送内存中的 ZIP 文件
         return send_file(zip_data, download_name = f"{markdown_title}.zip", as_attachment=True)
