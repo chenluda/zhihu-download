@@ -26,10 +26,13 @@ def index():
         if os.path.exists(zip_path):
             os.remove(zip_path)
 
+        # 定义支持的文件扩展名列表
+        supported_extensions = [".md", ".jpg", ".png", ".gif"]
+
         with zipfile.ZipFile(zip_path, "w") as zf:
             for root, _, files in os.walk(tmpdir):
                 for file in files:
-                    if file.endswith(".md") or file.endswith(".jpg"):
+                    if any(file.endswith(ext) for ext in supported_extensions):
                         zf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), tmpdir))
 
         # 使用 io.BytesIO 将文件读取到内存中
