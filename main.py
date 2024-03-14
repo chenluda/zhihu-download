@@ -122,15 +122,15 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
 
         # 处理回答中的图片
         for img in content_element.find_all("img"):
-            # 将图片链接替换为本地路径
-            img_url = img.get("data-original", img.get("src", None))
-            if img_url is None:
+            if 'src' in img.attrs:
+                img_url = img.attrs['src']
+            else:
                 continue
 
             img_name = urllib.parse.quote(os.path.basename(img_url))
             img_path = f"{markdown_title}/{img_name}"
 
-            extensions = ['.jpg', '.png']  # 可以在此列表中添加更多的图片格式
+            extensions = ['.jpg', '.png', '.gif']  # 可以在此列表中添加更多的图片格式
 
             # 如果图片链接中图片后缀后面还有字符串则直接截停
             for ext in extensions:
@@ -154,31 +154,26 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
 
         # 处理链接
         for link in content_element.find_all("a"):
-            original_url = link['href']
+            if 'href' in link.attrs:
+                original_url = link.attrs['href']
 
-            # 解析并解码 URL
-            parsed_url = urlparse(original_url)
-            query_params = parse_qs(parsed_url.query)
-            target_url = query_params.get('target', [original_url])[
-                0]  # 使用原 URL 作为默认值
-            article_url = unquote(target_url)  # 解码 URL
+                # 解析并解码 URL
+                parsed_url = urlparse(original_url)
+                query_params = parse_qs(parsed_url.query)
+                target_url = query_params.get('target', [original_url])[
+                    0]  # 使用原 URL 作为默认值
+                article_url = unquote(target_url)  # 解码 URL
 
-            article_title = link.get_text(strip=True)
-
-            # 如果没有标题，则使用span代替
-            if not article_title:
-                article_title_span = link.select_one(".LinkCard-title")
-                if article_title_span:
-                    article_title = article_title_span.text.strip()
-                    insert_new_line(soup, link, 1)
-                    if not article_title:
-                        article_title = article_url
-                else:
+                # 如果没有 data-text 属性，则使用文章链接作为标题
+                if 'data-text' not in link.attrs:
                     article_title = article_url
+                else:
+                    article_title = link.attrs['data-text']
+            
 
-            markdown_link = f"[{article_title}]({article_url})"
+                markdown_link = f"[{article_title}]({article_url})"
 
-            link.replace_with(markdown_link)
+                link.replace_with(markdown_link)
 
         # 提取并存储数学公式
         math_formulas = []
