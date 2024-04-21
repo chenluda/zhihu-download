@@ -244,18 +244,32 @@ def parse_zhihu_article(url, hexo_uploader):
     """
     解析知乎文章并保存为Markdown格式文件
     """
-    # 发送GET请求获取网页内容
-    response = requests.get(url)
-    # 解析HTML
+    session = requests.Session()
+    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    headers = {
+        'User-Agent': user_agents,
+        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
+        'Cookie': cookies
+    }
+    session.headers.update(headers)
+
+    try:
+        response = session.get(url)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+        return None
+    except requests.exceptions.RequestException as err:
+        print(f"Error occurred: {err}")
+        return None
+
     soup = BeautifulSoup(response.content, "html.parser")
-    # 找到文章标题和内容所在的元素
     title_element = soup.select_one("h1.Post-Title")
     content_element = soup.select_one("div.Post-RichTextContainer")
     date = get_article_date(soup)
     author = soup.select_one('div.AuthorInfo').find(
         'meta', {'itemprop': 'name'}).get('content')
 
-    # 解析知乎文章并保存为Markdown格式文件
     markdown_title = save_and_transform(
         title_element, content_element, author, url, hexo_uploader, soup, date)
 
@@ -266,8 +280,25 @@ def parse_zhihu_answer(url, hexo_uploader):
     """
     解析知乎回答并保存为 Markdown 格式文件
     """
-    # 发送GET请求获取网页内容
-    response = requests.get(url)
+    session = requests.Session()
+    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    headers = {
+        'User-Agent': user_agents,
+        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
+        'Cookie': cookies
+    }
+    session.headers.update(headers)
+
+    try:
+        response = session.get(url)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+        return None
+    except requests.exceptions.RequestException as err:
+        print(f"Error occurred: {err}")
+        return None
+    
     # 解析HTML
     soup = BeautifulSoup(response.content, "html.parser")
     # 找到回答标题、内容、作者所在的元素
@@ -306,8 +337,25 @@ def parse_zhihu_column(url, hexo_uploader):
     """
     解析知乎专栏并保存为 Markdown 格式文件
     """
-    # 发送GET请求获取网页内容
-    response = requests.get(url)
+    session = requests.Session()
+    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    headers = {
+        'User-Agent': user_agents,
+        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
+        'Cookie': cookies
+    }
+    session.headers.update(headers)
+
+    try:
+        response = session.get(url)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+        return None
+    except requests.exceptions.RequestException as err:
+        print(f"Error occurred: {err}")
+        return None
+    
     # 解析HTML
     soup = BeautifulSoup(response.content, "html.parser")
 
@@ -363,6 +411,8 @@ def parse_zhihu_column(url, hexo_uploader):
 
 
 if __name__ == "__main__":
+    cookies = 'your_zhihu_cookies'
+    
     # 回答
     # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
 
