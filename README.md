@@ -10,6 +10,9 @@
   <a href="#">
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
+  <a href="http://8.130.108.230:5000/">
+    <img alt="web" src="https://img.shields.io/badge/Status-Updating-green" />
+  </a>
 </div>
 
 <div align="center">
