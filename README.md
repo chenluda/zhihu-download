@@ -11,7 +11,7 @@
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
   <a href="http://8.130.108.230:5000/">
-    <img alt="web" src="https://img.shields.io/badge/Status-Updating-green" />
+    <img alt="web" src="https://img.shields.io/badge/演示网站-Web-red" />
   </a>
 </div>
 
