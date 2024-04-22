@@ -64,21 +64,30 @@ def get_valid_filename(s):
     return re.sub(r'(?u)[^-\w_]', '', s)
 
 
-def judge_zhihu_type(url, hexo_uploader=False):
+def judge_zhihu_type(url, cookies, hexo_uploader=False):
     """
     判断url类型
     """
+    session = requests.Session()
+    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    headers = {
+        'User-Agent': user_agents,
+        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
+        'Cookie': cookies
+    }
+    session.headers.update(headers)
+
     if url.find("column") != -1:
         # 如果是专栏
-        title = parse_zhihu_column(url, hexo_uploader)
+        title = parse_zhihu_column(url, session, hexo_uploader)
 
     elif url.find("answer") != -1:
         # 如果是回答
-        title = parse_zhihu_answer(url, hexo_uploader)
+        title = parse_zhihu_answer(url, session, hexo_uploader)
 
     else:
         # 如果是单篇文章
-        title = parse_zhihu_article(url, hexo_uploader)
+        title = parse_zhihu_article(url, session, hexo_uploader)
 
     return title
 
@@ -240,19 +249,10 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
     return markdown_title
 
 
-def parse_zhihu_article(url, hexo_uploader):
+def parse_zhihu_article(url, session, hexo_uploader):
     """
     解析知乎文章并保存为Markdown格式文件
     """
-    session = requests.Session()
-    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    headers = {
-        'User-Agent': user_agents,
-        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
-        'Cookie': cookies
-    }
-    session.headers.update(headers)
-
     try:
         response = session.get(url)
         response.raise_for_status()
@@ -276,19 +276,10 @@ def parse_zhihu_article(url, hexo_uploader):
     return markdown_title
 
 
-def parse_zhihu_answer(url, hexo_uploader):
+def parse_zhihu_answer(url, session, hexo_uploader):
     """
     解析知乎回答并保存为 Markdown 格式文件
     """
-    session = requests.Session()
-    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    headers = {
-        'User-Agent': user_agents,
-        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
-        'Cookie': cookies
-    }
-    session.headers.update(headers)
-
     try:
         response = session.get(url)
         response.raise_for_status()
@@ -333,19 +324,10 @@ def save_processed_article(filename, article_id):
         file.write(article_id + '\n')
 
 
-def parse_zhihu_column(url, hexo_uploader):
+def parse_zhihu_column(url, session, hexo_uploader):
     """
     解析知乎专栏并保存为 Markdown 格式文件
     """
-    session = requests.Session()
-    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    headers = {
-        'User-Agent': user_agents,
-        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
-        'Cookie': cookies
-    }
-    session.headers.update(headers)
-
     try:
         response = session.get(url)
         response.raise_for_status()
@@ -411,10 +393,11 @@ def parse_zhihu_column(url, hexo_uploader):
 
 
 if __name__ == "__main__":
-    cookies = 'your_zhihu_cookies'
     
+    cookies = 'your_zhihu_cookies'
+
     # 回答
-    # url = "https://www.zhihu.com/question/35931336/answer/2996939350"
+    # url = "https://www.zhihu.com/question/362131975/answer/2182682685"
 
     # 文章
     url = "https://zhuanlan.zhihu.com/p/114538417"
@@ -423,5 +406,4 @@ if __name__ == "__main__":
     # url = "https://www.zhihu.com/column/c_1704981555632713730"
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
-    judge_zhihu_type(url, hexo_uploader=False)
-
+    judge_zhihu_type(url, cookies, hexo_uploader=False)
