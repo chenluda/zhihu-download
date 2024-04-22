@@ -1,9 +1,9 @@
 '''
 Description: 将知乎专栏文章转换为 Markdown 文件保存到本地
-Version: 1.0
+Version: 3.0
 Author: Glenn
-Email: chenluda01@outlook.com
-Date: 2023-11-16 20:40:49
+Email: chenluda01@gmail.com
+Date: 2024-04-22 16:57:08
 FilePath: main.py
 Copyright (c) 2023 by Kust-BME, All Rights Reserved. 
 '''
