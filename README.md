@@ -10,8 +10,11 @@
   <a href="#">
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
+  <a href="#">
+    <img alt="Time" src="https://img.shields.io/badge/更新时间-2024-04-22-green" />
+  </a>
   <a href="http://8.130.108.230:5000/" target="_blank">
-    <img alt="web" src="https://img.shields.io/badge/演示网站-Web-red" />
+    <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
   </a>
 </div>
 
