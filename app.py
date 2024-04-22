@@ -2,15 +2,17 @@ import io
 import os
 import shutil
 import zipfile
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, after_this_request
 from main import *
 
 app = Flask(__name__)
 
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        cookies = 'your_zhihu_cookies'
+        cookies = request.form["cookies"]
+        # cookies = 'your_zhihu_cookies'
         url = request.form["url"]
         tmpdir = "zhihu"
         if os.path.exists(tmpdir):
@@ -34,7 +36,8 @@ def index():
             for root, _, files in os.walk(tmpdir):
                 for file in files:
                     if any(file.endswith(ext) for ext in supported_extensions):
-                        zf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), tmpdir))
+                        zf.write(os.path.join(root, file), os.path.relpath(
+                            os.path.join(root, file), tmpdir))
 
         # 使用 io.BytesIO 将文件读取到内存中
         with open(zip_path, "rb") as f:
@@ -50,9 +53,15 @@ def index():
                 print(f"Unable to delete temporary directory: {tmpdir}")
 
         # 使用 send_file 发送内存中的 ZIP 文件
-        return send_file(zip_data, download_name = f"{markdown_title}.zip", as_attachment=True)
+        return send_file(zip_data, download_name=f"{markdown_title}.zip", as_attachment=True)
 
     return render_template("index.html")
+
+
+@app.route("/get-cookies")
+def get_cookies():
+    return render_template("howToGetCookies.html")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=False)
