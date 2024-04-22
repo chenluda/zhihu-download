@@ -49,6 +49,10 @@ python app.py
 ```
 > **Note**
 >
+> 为应对知乎最新的验证机制，添加 Cookies 属性，[点击](http://8.130.108.230:5000/get-cookies) 查看如何获取知乎 Cookie。
+
+> **Note**
+>
 > flask 2.2 以下版本需要将 app.py 中第 46 行，
 > ``` python
 > return send_file(zip_data, download_name = markdown_title + ".zip", as_attachment=True)
@@ -57,10 +61,6 @@ python app.py
 > ``` python
 > return send_file(zip_data, attachment_filename = markdown_title + ".zip", as_attachment=True)
 > ```
-
-> **Note**
->
-> 为应对知乎最新的验证机制，添加 Cookies 属性，[点击](http://8.130.108.230:5000/get-cookies) 查看如何查看知乎 Cookie。
 
 > **Note**
 >
