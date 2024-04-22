@@ -10,6 +10,7 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
+        cookies = 'your_zhihu_cookies'
         url = request.form["url"]
         tmpdir = "zhihu"
         if os.path.exists(tmpdir):
@@ -18,7 +19,7 @@ def index():
 
         old_cwd = os.getcwd()
         os.chdir(tmpdir)
-        markdown_title = judge_zhihu_type(url)
+        markdown_title = judge_zhihu_type(url, cookies)
         os.chdir(old_cwd)
 
         zip_path = "zhihu.zip"
@@ -54,4 +55,4 @@ def index():
     return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(host="0.0.0.0", debug=False)
