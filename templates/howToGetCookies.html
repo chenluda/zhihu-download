@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>获取知乎Cookies的步骤</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #0275d8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>步骤 1: 进入知乎首页并登录</h3>
+        <h5>进入知乎首页，登录账号后按下 F12，点击 Network 选项卡；</h5>
+        <img src="/static/img/step1.png" alt="步骤1">
+    </div>
+    <div class="container">
+        <h3>步骤 2: 获取 Cookies</h3>
+        <h5>刷新知乎首页，在 Network 中随意点击一个 Fetch 项（注意前面的小图标），在右边的 Headers 中找到 Cookie，这段代码就是知乎 Cookie。</h5>
+        <img src="/static/img/step2.png" alt="步骤2">
+    </div>
+</body>
+</html>
