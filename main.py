@@ -378,7 +378,7 @@ def parse_zhihu_column(url, session, hexo_uploader):
                 continue
 
             article_link = url_template.format(id=article_id)
-            parse_zhihu_article(article_link, hexo_uploader)
+            parse_zhihu_article(article_link, session, hexo_uploader)
             save_processed_article(processed_filename, article_id)
             progress_bar.update(1)  # 更新进度条
 
