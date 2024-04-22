@@ -13,7 +13,9 @@
   </a>
 </div>
 
-![image](https://github.com/chenluda/zhihu-download/assets/45784833/13e59d0c-caf0-47d7-8edc-5dbef49b70cb)
+<div align="center">
+  <img src="https://github.com/chenluda/zhihu-download/assets/45784833/13e59d0c-caf0-47d7-8edc-5dbef49b70cb" alt="Zhihu Article">
+</div>
 
 ## 特点
 
