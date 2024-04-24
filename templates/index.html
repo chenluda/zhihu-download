@@ -91,10 +91,23 @@
       <h1>知乎文章转换器</h1>
       <label for="url">知乎文章、回答或专栏的 URL：</label>
       <input type="url" name="url" id="url" required />
-      <label for="cookies">知乎 Cookies：<span style="margin-left: 10px; color: red; cursor: pointer; font-size: 15px;" onclick="window.open('/get-cookies', '_blank')">（如何获取知乎 Cookies？）</span></label>
-      
+      <label for="cookies">知乎 Cookies：</label>
       <textarea name="cookies" id="cookies" rows="4" required></textarea>
-      <p class="caution">注意：虽然本网站不会保留任何记录，但使用 Cookie 仍有风险，建议前往 GitHub 自行部署。</p>
+      <p
+        style="
+          text-align: center;
+          color: blue;
+          cursor: pointer;
+          font-size: 12px;
+        "
+        onclick="window.open('/get-cookies', '_blank')"
+      >
+        如何获取知乎 Cookies？
+      </p>
+      <p class="caution">
+        注意：虽然本网站不会保留任何记录，但使用 Cookie 仍有风险，建议前往
+        GitHub 自行部署。
+      </p>
       <button type="submit">转换为 Markdown</button>
     </form>
     <div class="social-links">
