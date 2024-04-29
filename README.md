@@ -11,7 +11,7 @@
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
   <a href="#">
-    <img alt="Time" src="https://img.shields.io/badge/更新时间-2024.04.24-green" />
+    <img alt="Time" src="https://img.shields.io/badge/更新时间-2024.04.29-green" />
   </a>
   <a href="http://8.130.108.230:5000/" target="_blank">
     <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
@@ -91,8 +91,9 @@ python app.py
 * 2023-11-16：优化链接等格式。
 * 2023-11-22：更改内容标题格式。
 * 2023-12-27：更改内容标题格式；增加对数学公式中 `\tag{*}` 的特殊处理。（感谢 [korruz](https://github.com/korruz) 的意见！）
-* 2024-03-14：增加动图支持；更改链接格式；
-* 2024-04-22：增加 Cookies 以应对验证机制；
+* 2024-03-14：增加动图支持；更改链接格式。
+* 2024-04-22：增加 Cookies 以应对验证机制。
+* 2024-04-29：增加对视频的处理。
 
 ## 趋势
 
