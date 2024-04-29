@@ -1,6 +1,7 @@
 <div align="center">
   <h2>知乎专栏文章 Markdown 转换器</h2>
   <p>一键将知乎专栏文章转换并保存为 Markdown 文件</p>
+  <p>2024-04-29 11:15:35，Cookies 躲验证被拿下</p>
   <a href="#">
     <img alt="Python 3.9" src="https://img.shields.io/badge/python-3.9-blue.svg" />
   </a>
