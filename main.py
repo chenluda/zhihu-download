@@ -3,7 +3,7 @@ Description: 将知乎专栏文章转换为 Markdown 文件保存到本地
 Version: 3.0
 Author: Glenn
 Email: chenluda01@gmail.com
-Date: 2024-04-22 16:57:08
+Date: 2024-04-29 14:00:20
 FilePath: main.py
 Copyright (c) 2023 by Kust-BME, All Rights Reserved. 
 '''
@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from urllib.parse import unquote, urlparse, parse_qs
 from tqdm import tqdm
-
+import json
 
 def insert_new_line(soup, element, num_breaks):
     """
@@ -53,6 +53,15 @@ def download_image(url, save_path):
             f.write(response.content)
 
 
+def download_video(url, save_path):
+    """
+    从指定url下载视频并保存到本地
+    """
+    response = requests.get(url)
+    with open(save_path, "wb") as f:
+        f.write(response.content)
+
+
 def get_valid_filename(s):
     """
     将字符串转换为有效的文件名
@@ -64,18 +73,19 @@ def get_valid_filename(s):
     return re.sub(r'(?u)[^-\w_]', '', s)
 
 
-def judge_zhihu_type(url, cookies, hexo_uploader=False):
+def judge_zhihu_type(url, cookies=None, session=None, hexo_uploader=False):
     """
     判断url类型
     """
-    session = requests.Session()
-    user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    headers = {
-        'User-Agent': user_agents,
-        'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
-        'Cookie': cookies
-    }
-    session.headers.update(headers)
+    if session is None:
+        session = requests.Session()
+        user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        headers = {
+            'User-Agent': user_agents,
+            'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
+            'Cookie': cookies
+        }
+        session.headers.update(headers)
 
     if url.find("column") != -1:
         # 如果是专栏
@@ -84,6 +94,10 @@ def judge_zhihu_type(url, cookies, hexo_uploader=False):
     elif url.find("answer") != -1:
         # 如果是回答
         title = parse_zhihu_answer(url, session, hexo_uploader)
+
+    elif url.find("zvideo") != -1:
+        # 如果是视频
+        title = parse_zhihu_zvideo(url, session, hexo_uploader)
 
     else:
         # 如果是单篇文章
@@ -178,7 +192,6 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
                     article_title = article_url
                 else:
                     article_title = link.attrs['data-text']
-            
 
                 markdown_link = f"[{article_title}]({article_url})"
 
@@ -249,6 +262,63 @@ def save_and_transform(title_element, content_element, author, url, hexo_uploade
     return markdown_title
 
 
+def parse_zhihu_zvideo(url, session, hexo_uploader):
+    """
+    解析知乎视频并保存为 Markdown 格式文件
+    """
+    try:
+        response = session.get(url)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        print(f"HTTP error occurred: {err}")
+        return None
+    except requests.exceptions.RequestException as err:
+        print(f"Error occurred: {err}")
+        return None
+
+    soup = BeautifulSoup(response.content, "html.parser")
+    if soup.text.find("有问题，就会有答案打开知乎App在「我的页」右上角打开扫一扫其他扫码方式") != -1:
+        print("Cookies are required to access the article.")
+        return None
+    if soup.text.find("你似乎来到了没有知识存在的荒原") != -1:
+        print("The page does not exist.")
+        return None
+    data = json.loads(soup.select_one("div.ZVideo-video")['data-zop'])
+
+    match = re.search(r"\d{4}-\d{2}-\d{2}",
+                      soup.select_one("div.ZVideo-meta").text)
+    if match:
+        # 将日期中的"-"替换为空字符以格式化为YYYYMMDD
+        date = match.group().replace('-', '')
+    else:
+        date = "Unknown"
+
+    markdown_title = f"({date}){data['authorName']}_{data['title']}/{data['authorName']}_{data['title']}.mp4"
+
+    video_url = None
+    script = soup.find('script', id='js-initialData')
+    if script:
+        data = json.loads(script.text)
+        try:
+            videos = data['initialState']['entities']['zvideos']
+            for video_id, video_info in videos.items():
+                if 'playlist' in video_info['video']:
+                    for quality, details in video_info['video']['playlist'].items():
+                        video_url = details['playUrl']
+        except KeyError as e:
+            print("Key error in parsing JSON data:", e)
+            return None
+    else:
+        print("No suitable script tag found for video data")
+        return None
+
+    os.makedirs(os.path.dirname(markdown_title), exist_ok=True)
+
+    download_video(video_url, markdown_title)
+
+    return markdown_title
+
+
 def parse_zhihu_article(url, session, hexo_uploader):
     """
     解析知乎文章并保存为Markdown格式文件
@@ -264,6 +334,12 @@ def parse_zhihu_article(url, session, hexo_uploader):
         return None
 
     soup = BeautifulSoup(response.content, "html.parser")
+    if soup.text.find("有问题，就会有答案打开知乎App在「我的页」右上角打开扫一扫其他扫码方式") != -1:
+        print("Cookies are required to access the article.")
+        return None
+    if soup.text.find("你似乎来到了没有知识存在的荒原") != -1:
+        print("The page does not exist.")
+        return None
     title_element = soup.select_one("h1.Post-Title")
     content_element = soup.select_one("div.Post-RichTextContainer")
     date = get_article_date(soup)
@@ -289,9 +365,15 @@ def parse_zhihu_answer(url, session, hexo_uploader):
     except requests.exceptions.RequestException as err:
         print(f"Error occurred: {err}")
         return None
-    
+
     # 解析HTML
     soup = BeautifulSoup(response.content, "html.parser")
+    if soup.text.find("有问题，就会有答案打开知乎App在「我的页」右上角打开扫一扫其他扫码方式") != -1:
+        print("Cookies are required to access the article.")
+        return None
+    if soup.text.find("你似乎来到了没有知识存在的荒原") != -1:
+        print("The page does not exist.")
+        return None
     # 找到回答标题、内容、作者所在的元素
     title_element = soup.select_one("h1.QuestionHeader-title")
     content_element = soup.select_one("div.RichContent-inner")
@@ -337,7 +419,7 @@ def parse_zhihu_column(url, session, hexo_uploader):
     except requests.exceptions.RequestException as err:
         print(f"Error occurred: {err}")
         return None
-    
+
     # 解析HTML
     soup = BeautifulSoup(response.content, "html.parser")
 
@@ -373,14 +455,25 @@ def parse_zhihu_column(url, session, hexo_uploader):
         data = response.json()
 
         for item in data["data"]:
-            article_id = str(item["id"])
-            if article_id in processed_articles:
-                continue
+            if item["type"] == "zvideo":
+                video_id = str(item["id"])
+                if video_id in processed_articles:
+                    continue
 
-            article_link = url_template.format(id=article_id)
-            parse_zhihu_article(article_link, session, hexo_uploader)
-            save_processed_article(processed_filename, article_id)
-            progress_bar.update(1)  # 更新进度条
+                video_link = f"https://www.zhihu.com/zvideo/{video_id}"
+                judge_zhihu_type(video_link, None, session, hexo_uploader)
+                save_processed_article(processed_filename, video_id)
+                progress_bar.update(1)  # 更新进度条
+
+            else:
+                article_id = str(item["id"])
+                if article_id in processed_articles:
+                    continue
+
+                article_link = url_template.format(id=article_id)
+                judge_zhihu_type(article_link, None, session, hexo_uploader)
+                save_processed_article(processed_filename, article_id)
+                progress_bar.update(1)  # 更新进度条
 
         if data["paging"]["is_end"]:
             break
@@ -400,10 +493,13 @@ if __name__ == "__main__":
     # url = "https://www.zhihu.com/question/362131975/answer/2182682685"
 
     # 文章
-    url = "https://zhuanlan.zhihu.com/p/114538417"
+    # url = "https://zhuanlan.zhihu.com/p/545645937"
+
+    # 视频
+    # url = "https://www.zhihu.com/zvideo/1493715983701831680"
 
     # 专栏
-    # url = "https://www.zhihu.com/column/c_1704981555632713730"
+    url = "https://www.zhihu.com/column/c_1104714416238673920"
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
     judge_zhihu_type(url, cookies, hexo_uploader=False)
