@@ -21,7 +21,7 @@ def index():
 
         old_cwd = os.getcwd()
         os.chdir(tmpdir)
-        markdown_title = judge_zhihu_type(url, cookies)
+        markdown_title = judge_zhihu_type(url, cookies, None)
         os.chdir(old_cwd)
 
         zip_path = "zhihu.zip"
