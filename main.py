@@ -451,7 +451,7 @@ def parse_zhihu_column(url, session, hexo_uploader):
 
     while True:
         api_url = f"/api/v4/columns/{url.split('/')[-1]}/items?limit=10&offset={offset}"
-        response = requests.get(f"https://www.zhihu.com{api_url}")
+        response = session.get(f"https://www.zhihu.com{api_url}")
         data = response.json()
 
         for item in data["data"]:
