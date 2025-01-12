@@ -1,35 +1,12 @@
 import io
 import os
 import shutil
-from datetime import datetime
 from flask import Flask, request, render_template, send_file
 from main_zhihu import ZhihuParser
 from main_csdn import CsdnParser
-# from redis import Redis
 import zipfile
 
 app = Flask(__name__)
-# redis_client = Redis(host='redis', port=6379, decode_responses=True)
-
-# def record_visit():
-#     """记录访问者信息到Redis"""
-#     visitor_ip = request.remote_addr
-#     today = datetime.now().strftime('%Y-%m-%d')
-    
-#     total_key = 'visitor_total'
-#     daily_key = f'visitor_{today}'
-#     if not redis_client.sismember(daily_key, visitor_ip):
-#         redis_client.sadd(daily_key, visitor_ip)
-#         redis_client.expire(daily_key, 86400)  # 设置一天过期时间
-#         redis_client.incr(total_key)
-
-# def get_statistics():
-#     """获取统计信息"""
-#     today = datetime.now().strftime('%Y-%m-%d')
-#     total_visits = redis_client.get('visitor_total') or 0
-#     daily_visits = redis_client.scard(f'visitor_{today}') or 0
-#     total_downloads = redis_client.get('download_total') or 0
-#     return int(total_visits), int(daily_visits), int(total_downloads)
 
 def create_zip_from_directory(directory, zip_path):
     """从给定目录创建ZIP文件"""
@@ -44,9 +21,6 @@ def create_zip_from_directory(directory, zip_path):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    # record_visit()
-    # total_visits, daily_visits, total_downloads = get_statistics()
-
     if request.method == "POST":
         cookies = request.form["cookies"]
         url = request.form["url"]
@@ -76,14 +50,12 @@ def index():
                 zip_data = io.BytesIO(f.read())
 
             cleanup_files([zip_path, tmpdir])
-            # redis_client.incr('download_total')
 
             return send_file(zip_data, download_name=f"{markdown_title}.zip", as_attachment=True)
         except Exception as e:
             app.logger.error(f"Error processing {website} URL: {e}")
             return "An error occurred while processing your request.", 500
 
-    # return render_template("index.html", total_visits=total_visits, daily_visits=daily_visits, total_downloads=total_downloads)
     return render_template("index.html")
 
 @app.route("/get-cookies")
