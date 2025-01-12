@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>知乎文章转换器</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>URL2Markdown</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
     <style>
       * {
         box-sizing: border-box;
@@ -40,14 +43,26 @@
         margin-bottom: 1rem;
         display: block;
       }
-      input, textarea {
+      input,
+      textarea {
         display: block;
-        width: 100%;
+        /* width: 100%; */
         padding: 0.75rem;
         margin-bottom: 2rem;
         border: 1px solid #ccc;
         border-radius: 3px;
         font-size: 1.2rem;
+      }
+      select {
+        display: block;
+        width: 20%;
+        margin-left: 10px;
+        height: 47px;
+      }
+      .visits {
+        text-align: center;
+        color: blue;
+        font-size: 0.8rem;
       }
       button {
         display: block;
@@ -84,37 +99,118 @@
         text-align: center;
       }
     </style>
-  </head>
+    <script>
+      // 在页面加载时调用函数检查初始状态
+      document.addEventListener("DOMContentLoaded", (event) => {
+        showHideDiv();
+      });
+
+      function onUrlChange() {
+        const urlInput = document.getElementById("url");
+        const websiteSelect = document.getElementById("website");
+        try {
+          const url = new URL(urlInput.value);
+
+          if (url.hostname.includes("zhihu")) {
+            websiteSelect.value = "zhihu";
+          } else if (url.hostname.includes("csdn")) {
+            websiteSelect.value = "csdn";
+          } else {
+            websiteSelect.value = "";
+          }
+
+          showHideDiv();
+        } catch (error) {
+          console.error("Invalid URL:", error);
+          websiteSelect.value = "";
+          showHideDiv();
+        }
+      }
+
+      function showHideDiv() {
+        var websiteSelect = document.getElementById("website");
+        var conditionalDiv = document.getElementById("conditionalDiv");
+
+        console.log("websiteSelect:", websiteSelect.value);
+
+        if (websiteSelect.value === "zhihu") {
+          conditionalDiv.style.display = "block";
+        } else {
+          conditionalDiv.style.display = "none";
+        }
+      }
+    </script>
   </head>
   <body>
     <form method="POST" action="/">
-      <h1>知乎文章转换器</h1>
-      <label for="url">知乎文章、回答或专栏的 URL：</label>
-      <input type="url" name="url" id="url" required />
-      <label for="cookies">知乎 Cookies：</label>
-      <textarea name="cookies" id="cookies" rows="4" required></textarea>
-      <p
-        style="
-          text-align: center;
-          color: blue;
-          cursor: pointer;
-          font-size: 12px;
-        "
-        onclick="window.open('/get-cookies', '_blank')"
-      >
-        如何获取知乎 Cookies？
-      </p>
-      <p class="caution">
-        注意：虽然本网站不会保留任何记录，但使用 Cookie 仍有风险，建议前往
-        GitHub 自行部署。
-      </p>
+      <h1>URL2Markdown</h1>
+      <label for="url">网页URL：</label>
+      <div style="display: flex">
+        <input
+          type="url"
+          name="url"
+          id="url"
+          required
+          onchange="onUrlChange()"
+          style="width: 80%"
+        />
+        <select name="website" id="website" required onchange="showHideDiv()">
+          <option value="zhihu" selected>知乎</option>
+          <option value="csdn">CSDN</option>
+        </select>
+      </div>
+      <div id="conditionalDiv" style="display: none">
+        <label for="cookies">知乎 Cookies：</label>
+        <textarea
+          name="cookies"
+          id="cookies"
+          rows="4"
+          style="width: 100%"
+        ></textarea>
+        <p
+          style="
+            text-align: center;
+            color: blue;
+            cursor: pointer;
+            font-size: 12px;
+          "
+          onclick="window.open('/get-cookies', '_blank')"
+        >
+          如何获取知乎 Cookies？
+        </p>
+        <p class="caution">
+          注意：虽然本网站不会保留任何记录，但使用 Cookie 仍有风险，建议前往
+          GitHub 自行部署。
+        </p>
+      </div>
       <button type="submit">转换为 Markdown</button>
     </form>
-    <div class="social-links">
-      <a href="https://github.com/chenluda/zhihu-download" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
-      <a href="https://www.zhihu.com/people/Glenn" target="_blank" title="Zhihu"><i class="fab fa-zhihu"></i></a>
-      <a href="mailto:chenluda01@gmail.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a>
+    <div class="visits">
+      <p>
+        已成功下载了 <span style="color: red">{{ total_downloads }}</span> 次！
+      </p>
+      <p>
+        欢迎今日第 <span style="color: red">{{ daily_visits }}</span> 位伙伴！
+      </p>
+      <p>
+        总共有
+        <span style="color: red">{{ total_visits }}</span> 位伙伴访问本网站。
+      </p>
     </div>
-    <footer>&copy; 2023 Glenn. All rights reserved.</footer>
+    <div class="social-links">
+      <a
+        href="https://github.com/chenluda/zhihu-download"
+        target="_blank"
+        title="GitHub"
+        ><i class="fab fa-github"></i
+      ></a>
+      <a href="https://www.zhihu.com/people/Glenn" target="_blank" title="Zhihu"
+        ><i class="fab fa-zhihu"></i
+      ></a>
+      <a href="mailto:chenluda01@gmail.com" target="_blank" title="Email"
+        ><i class="fas fa-envelope"></i
+      ></a>
+    </div>
+    <footer>&copy; 2025 Glenn.</footer>
   </body>
 </html>
