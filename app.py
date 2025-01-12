@@ -5,31 +5,31 @@ from datetime import datetime
 from flask import Flask, request, render_template, send_file
 from main_zhihu import ZhihuParser
 from main_csdn import CsdnParser
-from redis import Redis
+# from redis import Redis
 import zipfile
 
 app = Flask(__name__)
-redis_client = Redis(host='redis', port=6379, decode_responses=True)
+# redis_client = Redis(host='redis', port=6379, decode_responses=True)
 
-def record_visit():
-    """记录访问者信息到Redis"""
-    visitor_ip = request.remote_addr
-    today = datetime.now().strftime('%Y-%m-%d')
+# def record_visit():
+#     """记录访问者信息到Redis"""
+#     visitor_ip = request.remote_addr
+#     today = datetime.now().strftime('%Y-%m-%d')
     
-    total_key = 'visitor_total'
-    daily_key = f'visitor_{today}'
-    if not redis_client.sismember(daily_key, visitor_ip):
-        redis_client.sadd(daily_key, visitor_ip)
-        redis_client.expire(daily_key, 86400)  # 设置一天过期时间
-        redis_client.incr(total_key)
+#     total_key = 'visitor_total'
+#     daily_key = f'visitor_{today}'
+#     if not redis_client.sismember(daily_key, visitor_ip):
+#         redis_client.sadd(daily_key, visitor_ip)
+#         redis_client.expire(daily_key, 86400)  # 设置一天过期时间
+#         redis_client.incr(total_key)
 
-def get_statistics():
-    """获取统计信息"""
-    today = datetime.now().strftime('%Y-%m-%d')
-    total_visits = redis_client.get('visitor_total') or 0
-    daily_visits = redis_client.scard(f'visitor_{today}') or 0
-    total_downloads = redis_client.get('download_total') or 0
-    return int(total_visits), int(daily_visits), int(total_downloads)
+# def get_statistics():
+#     """获取统计信息"""
+#     today = datetime.now().strftime('%Y-%m-%d')
+#     total_visits = redis_client.get('visitor_total') or 0
+#     daily_visits = redis_client.scard(f'visitor_{today}') or 0
+#     total_downloads = redis_client.get('download_total') or 0
+#     return int(total_visits), int(daily_visits), int(total_downloads)
 
 def create_zip_from_directory(directory, zip_path):
     """从给定目录创建ZIP文件"""
