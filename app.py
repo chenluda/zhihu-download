@@ -1,11 +1,3 @@
-'''
-Author: chenluda01@outlook.com
-Date: 2023-10-29 20:34:35
-LastEditors: chenluda01@outlook.com
-LastEditTime: 2025-01-12 19:02:57
-Description: 
-FilePath: \zhihu-download\app.py
-'''
 import io
 import os
 import shutil
