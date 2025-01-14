@@ -11,7 +11,7 @@
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
   <a href="#">
-    <img alt="Time" src="https://img.shields.io/badge/更新时间-2025.01.12-green" />
+    <img alt="Time" src="https://img.shields.io/badge/更新时间-2025.01.14-green" />
   </a>
   <a href="http://8.130.108.230:5000/" target="_blank">
     <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
@@ -95,6 +95,7 @@ python app.py
 * 2024-04-22：增加 Cookies 以应对验证机制。
 * 2024-04-29：增加对视频的处理。
 * 2025-01-12：新增 CSDN 博客文章下载功能；修复知乎最新 HTML 结构的 bug。
+* 2025-01-14：增加下载请求接口。
 
 ## 趋势
 
