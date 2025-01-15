@@ -45,7 +45,7 @@ class ZhihuParser:
         if self.soup.text.find("你似乎来到了没有知识存在的荒原") != -1:
             print("The page does not exist.")
 
-    def judge_zhihu_type(self, target_link):
+    def judge_type(self, target_link):
         """
         判断url类型
         """
@@ -382,7 +382,7 @@ class ZhihuParser:
                         continue
 
                     answer_link = f"https://www.zhihu.com/question/{item['question']['id']}/answer/{answer_id}"
-                    self.judge_zhihu_type(answer_link)
+                    self.judge_type(answer_link)
                     self.save_processed_article(processed_filename, answer_id)
                     progress_bar.update(1)
 
@@ -397,6 +397,7 @@ class ZhihuParser:
 
 
 if __name__ == "__main__":
+    cookies = "your cookies here"
 
     # 回答
     # url = "https://www.zhihu.com/question/362131975/answer/2182682685"
@@ -412,4 +413,4 @@ if __name__ == "__main__":
 
     # hexo_uploader=True 表示在公式前后加上 {% raw %} {% endraw %}，以便 hexo 正确解析
     parser = ZhihuParser(cookies)
-    parser.judge_zhihu_type(url)
+    parser.judge_type(url)

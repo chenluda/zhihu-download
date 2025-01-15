@@ -115,6 +115,8 @@
             websiteSelect.value = "zhihu";
           } else if (url.hostname.includes("csdn")) {
             websiteSelect.value = "csdn";
+          } else if (url.hostname.includes("mp.weixin")) {
+            websiteSelect.value = "weixin";
           } else {
             websiteSelect.value = "";
           }
@@ -157,6 +159,7 @@
         <select name="website" id="website" required onchange="showHideDiv()">
           <option value="zhihu" selected>知乎</option>
           <option value="csdn">CSDN</option>
+          <option value="weixin">微信公众号</option>
         </select>
       </div>
       <div id="conditionalDiv" style="display: none">

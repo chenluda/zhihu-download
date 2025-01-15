@@ -4,6 +4,7 @@ import shutil
 from flask import Flask, request, render_template, send_file, jsonify
 from main_zhihu import ZhihuParser
 from main_csdn import CsdnParser
+from main_weixin import WeixinParser
 import zipfile
 
 app = Flask(__name__)
@@ -30,7 +31,8 @@ def index():
 
         parser_map = {
             "csdn": (CsdnParser(), "csdn"),
-            "zhihu": (ZhihuParser(cookies), "zhihu")
+            "zhihu": (ZhihuParser(cookies), "zhihu"),
+            "weixin": (WeixinParser(), "weixin")
         }
 
         try:
@@ -42,8 +44,7 @@ def index():
             os.makedirs(tmpdir, exist_ok=True)
             old_cwd = os.getcwd()
             os.chdir(tmpdir)
-            markdown_title = parser.judge_type(
-                url) if website == "csdn" else parser.judge_zhihu_type(url)
+            markdown_title = parser.judge_type(url)
             os.chdir(old_cwd)
 
             zip_path = f"{markdown_title}.zip"
@@ -86,7 +87,8 @@ def api_download():
 
     parser_map = {
         "csdn": (CsdnParser(), "csdn"),
-        "zhihu": (ZhihuParser(cookies), "zhihu")
+        "zhihu": (ZhihuParser(cookies), "zhihu"),
+        "weixin": (WeixinParser(), "weixin")
     }
 
     try:
@@ -98,8 +100,7 @@ def api_download():
         os.makedirs(tmpdir, exist_ok=True)
         old_cwd = os.getcwd()
         os.chdir(tmpdir)
-        markdown_title = parser.judge_type(
-            url) if website == "csdn" else parser.judge_zhihu_type(url)
+        markdown_title = parser.judge_type(url)
         os.chdir(old_cwd)
 
         zip_path = f"{markdown_title}.zip"
