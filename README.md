@@ -38,11 +38,6 @@
 
 ## 运行环境
 
-```
-flask 2.3.3
-flask-cors 4.0.0
-python 3.9
-```
 创建干净的 Conda 环境
 ```bash
 conda create -n zhihu2Mark python=3.8
