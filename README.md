@@ -11,7 +11,7 @@
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
   <a href="#">
-    <img alt="Time" src="https://img.shields.io/badge/更新时间-2025.01.14-green" />
+    <img alt="Time" src="https://img.shields.io/badge/更新时间-2025.01.15-green" />
   </a>
   <a href="http://8.130.108.230:5000/" target="_blank">
     <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
@@ -43,8 +43,17 @@ flask 2.3.3
 flask-cors 4.0.0
 python 3.9
 ```
-运行代码
+创建干净的 Conda 环境
+```bash
+conda create -n zhihu2Mark python=3.8
+conda activate zhihu2Mark
 ```
+安装依赖
+```bash
+pip install -r requirements.txt
+```
+运行代码
+```bash
 python app.py
 ```
 > **Note**
@@ -83,19 +92,20 @@ python app.py
 
 ## 更新日志
 
-* 2023-05-29：适应知乎最新 HTML 结构。
-* 2023-06-12：修复数学公式 Markdown 转换 bug。
-* 2023-06-22：为数学公式添加转义符号，增强兼容性。
-* 2023-08-19：修复公式和卡片链接相关的多项 bug。
-* 2023-10-27：优化代码，增加断点续传功能，改进图片处理和链接优化。（感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！）
-* 2023-11-16：优化链接等格式。
-* 2023-11-22：更改内容标题格式。
-* 2023-12-27：更改内容标题格式；增加对数学公式中 `\tag{*}` 的特殊处理。（感谢 [korruz](https://github.com/korruz) 的意见！）
-* 2024-03-14：增加动图支持；更改链接格式。
-* 2024-04-22：增加 Cookies 以应对验证机制。
-* 2024-04-29：增加对视频的处理。
-* 2025-01-12：新增 CSDN 博客文章下载功能；修复知乎最新 HTML 结构的 bug。
+* 2025-01-25：新增微信公众号文章下载功能；增加 requirements.txt 文件。
 * 2025-01-14：增加下载请求接口。
+* 2025-01-12：新增 CSDN 博客文章下载功能；修复知乎最新 HTML 结构的 bug。
+* 2024-04-29：增加对视频的处理。
+* 2024-04-22：增加 Cookies 以应对验证机制。
+* 2024-03-14：增加动图支持；更改链接格式。
+* 2023-12-27：更改内容标题格式；增加对数学公式中 `\tag{*}` 的特殊处理。（感谢 [korruz](https://github.com/korruz) 的意见！）
+* 2023-11-22：更改内容标题格式。
+* 2023-10-27：优化代码，增加断点续传功能，改进图片处理和链接优化。（感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！）
+* 2023-08-19：修复公式和卡片链接相关的多项 bug。
+* 2023-06-22：为数学公式添加转义符号，增强兼容性。
+* 2023-06-12：修复数学公式 Markdown 转换 bug。
+* 2023-05-29：适应知乎最新 HTML 结构。
+* 2023-11-16：优化链接等格式。
 
 ## 趋势
 
