@@ -279,7 +279,7 @@ class ZhihuParser:
             'meta', {'itemprop': 'name'}).get('content')
 
         markdown_title = self.save_and_transform(
-            title_element, content_element, author, date)
+            title_element, content_element, author, target_link, date)
 
         return markdown_title
 
@@ -297,7 +297,7 @@ class ZhihuParser:
 
         # 解析知乎文章并保存为Markdown格式文件
         markdown_title = self.save_and_transform(
-            title_element, content_element, author, date)
+            title_element, content_element, author, target_link, date)
 
         return markdown_title
 
