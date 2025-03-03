@@ -1,6 +1,5 @@
 import re
 
-
 def insert_new_line(soup, element, num_breaks):
     """
     在指定位置插入换行符
@@ -19,6 +18,16 @@ def get_article_date(soup, name):
         match = re.search(r"\d{4}-\d{2}-\d{2}", date_element.get_text())
         if match:
             return match.group().replace('-', '')
+    return "Unknown"
+
+
+def get_article_date_csdn(date_element):
+    """
+    从页面中提取文章日期
+    """
+    match = re.search(r"\d{4}-\d{2}-\d{2}", date_element.get_text())
+    if match:
+        return match.group(1).replace('-', '')
     return "Unknown"
 
 
