@@ -11,7 +11,7 @@
     <img alt="Status" src="https://img.shields.io/badge/Status-Updating-green" />
   </a>
   <a href="#">
-    <img alt="Time" src="https://img.shields.io/badge/更新时间-2025.01.15-green" />
+    <img alt="Time" src="https://img.shields.io/badge/更新时间-2025.03.03-green" />
   </a>
   <a href="http://8.130.108.230:5000/" target="_blank">
     <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
@@ -85,8 +85,43 @@ python app.py
 > markdown_title = get_valid_filename(title)
 > ```
 
+## 容器部署（以阿里云为例）
+克隆项目
+```bash
+git clone git@github.com:chenluda/zhihu-download.git
+```
+进入项目目录
+```bash
+cd zhihu-download
+```
+构建本地镜像
+```bash
+docker build -t zhihu2markdown .
+```
+连接远程仓库（阿里云容器镜像服务 ACR：https://www.aliyun.com/product/acr/）
+```bash
+docker login --username=xxx registry.cn-xxx.aliyuncs.com
+```
+标记镜像
+```bash
+docker tag zhihu2markdown:latest registry.cn-xxx.aliyuncs.com/xxx/zhihu2markdown:latest
+```
+推送镜像
+```bash
+docker push registry.cn-xxx.aliyuncs.com/xxx/zhihu2markdown:latest
+```
+云服务器拉取镜像
+```bash
+docker pull registry.cn-xxx.aliyuncs.com/xxx/zhihu2markdown:latest
+```
+运行容器
+```bash
+docker run --rm -p 5000:5000 registry.cn-xxx.aliyuncs.com/xxx/zhihu2markdown:latest
+```
+
 ## 更新日志
 
+* 2025-03-03：添加日志记录；专栏下载报错跳过；添加 Dockerfile。
 * 2025-01-25：新增微信公众号文章下载功能；增加 requirements.txt 文件。
 * 2025-01-14：增加下载请求接口。
 * 2025-01-12：新增 CSDN 博客文章下载功能；修复知乎最新 HTML 结构的 bug。
