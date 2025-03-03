@@ -1,14 +1,14 @@
 import os
 import re
 import urllib.parse
-
+import logging
 import requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from urllib.parse import unquote, urlparse, parse_qs
 from tqdm import tqdm
 import json
-from utils.util import insert_new_line, get_article_date, download_image, download_video, get_valid_filename
+from utils.util import insert_new_line, get_article_date, download_image, download_video, get_valid_filename, get_article_date_csdn
 
 
 class CsdnParser:
@@ -23,6 +23,16 @@ class CsdnParser:
         }
         self.session.headers.update(self.headers)  # 更新会话的请求头
         self.soup = None  # 存储页面的 BeautifulSoup 对象
+        # 设置日志
+        self.logger = logging.getLogger('csdn_parser')
+        self.logger.setLevel(logging.INFO)
+        if not self.logger.handlers:
+            handler = logging.FileHandler(
+                './logs/csdn_download.log', encoding='utf-8')
+            formatter = logging.Formatter(
+                '%(asctime)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
 
     def check_connect_error(self, target_link):
         """
@@ -32,10 +42,11 @@ class CsdnParser:
             response = self.session.get(target_link)
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            print(f"HTTP error occurred: {err}")
-
+            self.logger.error(f"HTTP error occurred: {err}")
+            raise
         except requests.exceptions.RequestException as err:
-            print(f"Error occurred: {err}")
+            self.logger.error(f"Error occurred: {err}")
+            raise
 
         self.soup = BeautifulSoup(response.content, "html.parser")
 
@@ -43,15 +54,18 @@ class CsdnParser:
         """
         判断url类型
         """
-        if target_link.find("category") != -1:
-            # 如果是专栏
-            title = self.parse_column(target_link)
+        try:
+            if target_link.find("category") != -1:
+                # 如果是专栏
+                title = self.parse_column(target_link)
+            else:
+                # 如果是单篇文章
+                title = self.parse_article(target_link)
 
-        else:
-            # 如果是单篇文章
-            title = self.parse_article(target_link)
-
-        return title
+            return title
+        except Exception as e:
+            self.logger.error(f"Error processing URL {target_link}: {str(e)}")
+            raise
 
     def save_and_transform(self, title_element, content_element, author, target_link, date=None):
         """
@@ -89,31 +103,36 @@ class CsdnParser:
 
             # 处理回答中的图片
             for img in content_element.find_all("img"):
-                if 'src' in img.attrs:
-                    img_url = img.attrs['src']
-                else:
-                    continue
+                try:
+                    if 'src' in img.attrs:
+                        img_url = img.attrs['src']
+                    else:
+                        continue
 
-                img_name = urllib.parse.quote(os.path.basename(img_url))
-                img_path = f"{markdown_title}/{img_name}"
+                    img_name = urllib.parse.quote(os.path.basename(img_url))
+                    img_path = f"{markdown_title}/{img_name}"
 
-                extensions = ['.jpg', '.png', '.gif']  # 可以在此列表中添加更多的图片格式
+                    extensions = ['.jpg', '.png', '.gif']  # 可以在此列表中添加更多的图片格式
 
-                # 如果图片链接中图片后缀后面还有字符串则直接截停
-                for ext in extensions:
-                    index = img_path.find(ext)
-                    if index != -1:
-                        img_path = img_path[:index + len(ext)]
-                        break  # 找到第一个匹配的格式后就跳出循环
+                    # 如果图片链接中图片后缀后面还有字符串则直接截停
+                    for ext in extensions:
+                        index = img_path.find(ext)
+                        if index != -1:
+                            img_path = img_path[:index + len(ext)]
+                            break  # 找到第一个匹配的格式后就跳出循环
 
-                img["src"] = img_path
+                    img["src"] = img_path
 
-                # 下载图片并保存到本地
-                os.makedirs(os.path.dirname(img_path), exist_ok=True)
-                download_image(img_url, img_path, self.session)
+                    # 下载图片并保存到本地
+                    os.makedirs(os.path.dirname(img_path), exist_ok=True)
+                    download_image(img_url, img_path, self.session)
 
-                # 在图片后插入换行符
-                insert_new_line(self.soup, img, 1)
+                    # 在图片后插入换行符
+                    insert_new_line(self.soup, img, 1)
+                except Exception as e:
+                    self.logger.warning(
+                        f"Error downloading image {img.get('src', 'unknown')}: {str(e)}")
+                    # 继续处理下一张图片，不中断进程
 
             # 在图例后面加上换行符
             for figcaption in content_element.find_all("figcaption"):
@@ -210,19 +229,36 @@ class CsdnParser:
         """
         解析知乎文章并保存为Markdown格式文件
         """
-        self.check_connect_error(target_link)
+        try:
+            self.check_connect_error(target_link)
 
-        title_element = self.soup.select_one("h1.title-article")
-        content_element = self.soup.select_one("div#content_views")
+            title_element = self.soup.select_one("h1.title-article")
+            content_element = self.soup.select_one("div#content_views")
 
-        date = get_article_date(self.soup, "div.bar-content")
-        author = self.soup.select_one(
-            'div.bar-content').find_all("a")[0].text.strip()
+            if not title_element or not content_element:
+                self.logger.warning("Could not find title or content elements")
+                if not title_element:
+                    self.logger.warning("Missing title element")
+                if not content_element:
+                    self.logger.warning("Missing content element")
 
-        markdown_title = self.save_and_transform(
-            title_element, content_element, author, target_link, date)
+            author_element = self.soup.select_one('div.bar-content')
+            if author_element and author_element.find_all("a"):
+                author = author_element.find_all("a")[0].text.strip()
+                date = get_article_date_csdn(author_element)
+            else:
+                author = "未知作者"
+                date = None
+                self.logger.warning("Could not find author information")
 
-        return markdown_title
+            markdown_title = self.save_and_transform(
+                title_element, content_element, author, target_link, date)
+
+            self.logger.info(f"Successfully parsed article: {markdown_title}")
+            return markdown_title
+        except Exception as e:
+            self.logger.error(f"Error parsing article {target_link}: {str(e)}")
+            raise
 
     def load_processed_articles(self, filename):
         """
@@ -244,43 +280,109 @@ class CsdnParser:
         """
         解析知乎专栏并保存为 Markdown 格式文件
         """
-        self.check_connect_error(target_link)
+        try:
+            self.check_connect_error(target_link)
 
-        # 将所有文章放在一个以专栏标题命名的文件夹中
-        title = self.soup.text.split('-')[0].split('_')[0].strip()
-        total_articles = int(self.soup.text.split(
-            '文章数：')[-1].split('文章阅读量')[0].strip())  # 总文章数
-        folder_name = get_valid_filename(title)
-        os.makedirs(folder_name, exist_ok=True)
-        os.chdir(folder_name)
+            # 将所有文章放在一个以专栏标题命名的文件夹中
+            title = self.soup.text.split('-')[0].split('_')[0].strip()
+            
+            try:
+                total_articles = int(self.soup.text.split(
+                    '文章数：')[-1].split('文章阅读量')[0].strip())  # 总文章数
+            except (ValueError, IndexError):
+                # 如果无法解析总文章数，使用-1表示未知
+                total_articles = -1
+                self.logger.warning(
+                    "Could not determine total article count, using undefined count")
+                
+            folder_name = get_valid_filename(title)
+            os.makedirs(folder_name, exist_ok=True)
+            os.chdir(folder_name)
 
-        processed_filename = "csdn_processed_articles.txt"
-        processed_articles = self.load_processed_articles(processed_filename)
+            processed_filename = "csdn_processed_articles.txt"
+            processed_articles = self.load_processed_articles(processed_filename)
+            failed_articles_filename = "csdn_failed_articles.txt"
 
-        offset = 0
-        total_parsed = 0
+            # 读取失败的文章列表，用于记录
+            failed_articles = set()
+            if os.path.exists(failed_articles_filename):
+                with open(failed_articles_filename, 'r', encoding='utf-8') as file:
+                    failed_articles = set(file.read().splitlines())
 
-        # 计算已处理的文章数
-        already_processed = len(processed_articles)
+            offset = 0
+            success_count = 0
+            failure_count = 0
 
-        # 初始化进度条，从已处理的文章数开始
-        progress_bar = tqdm(total=total_articles,
-                            initial=already_processed, desc="解析文章")
+            # 计算已处理的文章数
+            already_processed = len(processed_articles)
 
-        ul_element = self.soup.find('ul', class_='column_article_list')
-        for li in ul_element.find_all('li'):
-            article_link = li.find('a')['href']
-            article_id = article_link.split('/')[-1]
-            if article_id in processed_articles:
-                continue
+            # 初始化进度条，从已处理的文章数开始
+            if total_articles > 0:
+                progress_bar = tqdm(
+                    total=total_articles, initial=already_processed, desc="解析文章")
+            else:
+                # 如果无法确定总数，就使用一个无限进度条
+                progress_bar = tqdm(desc="解析文章")
 
-            self.parse_article(article_link)
-            self.save_processed_article(processed_filename, article_id)
-            progress_bar.update(1)  # 更新进度条
+            ul_element = self.soup.find('ul', class_='column_article_list')
+            if not ul_element:
+                self.logger.error("Could not find article list element")
+                raise ValueError("Article list not found on page")
+                
+            for li in ul_element.find_all('li'):
+                try:
+                    article_link = li.find('a')['href']
+                    article_id = article_link.split('/')[-1]
+                    
+                    # 如果已经处理过，跳过
+                    if article_id in processed_articles:
+                        continue
 
-        progress_bar.close()  # 完成后关闭进度条
-        os.remove(processed_filename)  # 删除已处理文章的ID文件
-        return folder_name
+                    # 如果之前失败过，再试一次
+                    retry_failed = article_id in failed_articles
+                    
+                    try:
+                        self.parse_article(article_link)
+                        # 成功处理，记录并更新进度
+                        self.save_processed_article(processed_filename, article_id)
+                        if retry_failed:
+                            failed_articles.remove(article_id)
+                            # 更新失败文件
+                            with open(failed_articles_filename, 'w', encoding='utf-8') as file:
+                                file.write('\n'.join(failed_articles))
+                        success_count += 1
+                        progress_bar.update(1)  # 更新进度条
+                    except Exception as e:
+                        failure_count += 1
+                        # 记录失败的文章
+                        failed_articles.add(article_id)
+                        with open(failed_articles_filename, 'a', encoding='utf-8') as file:
+                            file.write(f"{article_id}\n")
+                        self.logger.error(
+                            f"Error processing article {article_id}: {str(e)}")
+                        # 继续处理下一篇文章
+                except Exception as e:
+                    self.logger.warning(f"Error processing list item: {str(e)}")
+                    # 继续处理下一个列表项
+
+            progress_bar.close()  # 完成后关闭进度条
+
+            # 如果失败文件为空，则删除
+            if len(failed_articles) == 0 and os.path.exists(failed_articles_filename):
+                os.remove(failed_articles_filename)
+
+            self.logger.info(
+                f"Column processing complete. Success: {success_count}, Failed: {failure_count}")
+            
+            # 只有在全部成功的情况下删除已处理文件
+            if failure_count == 0 and os.path.exists(processed_filename):
+                os.remove(processed_filename)
+
+            return folder_name
+        except Exception as e:
+            self.logger.error(f"Error parsing column {target_link}: {str(e)}")
+            # 在这种情况下，返回当前文件夹名，以便打包已下载的内容
+            return os.path.basename(os.getcwd())
 
 
 if __name__ == "__main__":

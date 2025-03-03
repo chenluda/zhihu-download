@@ -1,7 +1,7 @@
 import os
 import re
 import urllib.parse
-
+import logging
 import requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
@@ -23,6 +23,16 @@ class WeixinParser:
         }
         self.session.headers.update(self.headers)  # 更新会话的请求头
         self.soup = None  # 存储页面的 BeautifulSoup 对象
+        # 设置日志
+        self.logger = logging.getLogger('weixin_parser')
+        self.logger.setLevel(logging.INFO)
+        if not self.logger.handlers:
+            handler = logging.FileHandler(
+                './logs/weixin_download.log', encoding='utf-8')
+            formatter = logging.Formatter(
+                '%(asctime)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
 
     def check_connect_error(self, target_link):
         """
@@ -32,10 +42,11 @@ class WeixinParser:
             response = self.session.get(target_link)
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            print(f"HTTP error occurred: {err}")
-
+            self.logger.error(f"HTTP error occurred: {err}")
+            raise
         except requests.exceptions.RequestException as err:
-            print(f"Error occurred: {err}")
+            self.logger.error(f"Error occurred: {err}")
+            raise
 
         self.soup = BeautifulSoup(response.content, "html.parser")
 
@@ -43,9 +54,12 @@ class WeixinParser:
         """
         判断url类型
         """
-        title = self.parse_article(target_link)
-
-        return title
+        try:
+            title = self.parse_article(target_link)
+            return title
+        except Exception as e:
+            self.logger.error(f"Error processing URL {target_link}: {str(e)}")
+            raise
 
     def save_and_transform(self, title_element, content_element, author, target_link, date=None):
         """
@@ -84,48 +98,53 @@ class WeixinParser:
             img_index = 0
             # 处理回答中的图片
             for img in content_element.find_all("img"):
-                if 'data-src' in img.attrs:
-                    img_url = img.attrs['data-src']
-                elif 'src' in img.attrs:
-                    img_url = img.attrs['src']
-                else:
-                    continue
+                try:
+                    if 'data-src' in img.attrs:
+                        img_url = img.attrs['data-src']
+                    elif 'src' in img.attrs:
+                        img_url = img.attrs['src']
+                    else:
+                        continue
 
-                # 解析URL并获取查询参数
-                parsed_url = urllib.parse.urlparse(img_url)
-                query_params = urllib.parse.parse_qs(parsed_url.query)
+                    # 解析URL并获取查询参数
+                    parsed_url = urllib.parse.urlparse(img_url)
+                    query_params = urllib.parse.parse_qs(parsed_url.query)
 
-                # 确定图片扩展名，优先从查询参数中获取
-                if 'wx_fmt' in query_params:
-                    ext = f".{query_params['wx_fmt'][0]}"
-                else:
-                    # 如果没有查询参数，则尝试从路径部分获取扩展名
-                    ext = os.path.splitext(parsed_url.path)[1] or '.jpg'  # 默认使用.jpg
+                    # 确定图片扩展名，优先从查询参数中获取
+                    if 'wx_fmt' in query_params:
+                        ext = f".{query_params['wx_fmt'][0]}"
+                    else:
+                        # 如果没有查询参数，则尝试从路径部分获取扩展名
+                        ext = os.path.splitext(parsed_url.path)[1] or '.jpg'  # 默认使用.jpg
 
-                # 提取图片格式
-                img_name = f"img_{img_index:02d}{ext}"
-                img_path = f"{markdown_title}/{img_name}"
+                    # 提取图片格式
+                    img_name = f"img_{img_index:02d}{ext}"
+                    img_path = f"{markdown_title}/{img_name}"
 
-                extensions = ['.jpg', '.jpeg', '.png',
-                              '.gif']  # 可以在此列表中添加更多的图片格式
+                    extensions = ['.jpg', '.jpeg', '.png',
+                                '.gif']  # 可以在此列表中添加更多的图片格式
 
-                # 如果图片链接中图片后缀后面还有字符串则直接截停
-                for ext in extensions:
-                    index = img_path.find(ext)
-                    if index != -1:
-                        img_path = img_path[:index + len(ext)]
-                        break  # 找到第一个匹配的格式后就跳出循环
+                    # 如果图片链接中图片后缀后面还有字符串则直接截停
+                    for ext in extensions:
+                        index = img_path.find(ext)
+                        if index != -1:
+                            img_path = img_path[:index + len(ext)]
+                            break  # 找到第一个匹配的格式后就跳出循环
 
-                img["src"] = img_path
+                    img["src"] = img_path
 
-                # 下载图片并保存到本地
-                os.makedirs(os.path.dirname(img_path), exist_ok=True)
-                download_image(img_url, img_path, self.session)
+                    # 下载图片并保存到本地
+                    os.makedirs(os.path.dirname(img_path), exist_ok=True)
+                    download_image(img_url, img_path, self.session)
 
-                img_index += 1
+                    img_index += 1
 
-                # 在图片后插入换行符
-                insert_new_line(self.soup, img, 1)
+                    # 在图片后插入换行符
+                    insert_new_line(self.soup, img, 1)
+                except Exception as e:
+                    self.logger.warning(
+                        f"Error downloading image {img.get('data-src', img.get('src', 'unknown'))}: {str(e)}")
+                    # 继续处理下一张图片，不中断进程
 
             # 在图例后面加上换行符
             for figcaption in content_element.find_all("figcaption"):
@@ -222,19 +241,36 @@ class WeixinParser:
         """
         解析知乎文章并保存为Markdown格式文件
         """
-        self.check_connect_error(target_link)
+        try:
+            self.check_connect_error(target_link)
 
-        title_element = self.soup.select_one("h1#activity-name")
-        content_element = self.soup.select_one("div#js_content")
+            title_element = self.soup.select_one("h1#activity-name")
+            content_element = self.soup.select_one("div#js_content")
+            
+            if not title_element or not content_element:
+                self.logger.warning("Could not find title or content elements")
+                if not title_element:
+                    self.logger.warning("Missing title element")
+                if not content_element:
+                    self.logger.warning("Missing content element")
 
-        date = get_article_date_weixin(self.soup.find_all('script', type='text/javascript'))
-        author = self.soup.select_one("div#meta_content").find_all("a")[
-            0].text.strip()
+            date = get_article_date_weixin(self.soup.find_all('script', type='text/javascript'))
+            
+            author_element = self.soup.select_one("div#meta_content")
+            if author_element and author_element.find_all("a"):
+                author = author_element.find_all("a")[0].text.strip()
+            else:
+                author = "未知作者"
+                self.logger.warning("Could not find author information")
 
-        markdown_title = self.save_and_transform(
-            title_element, content_element, author, target_link, date)
-
-        return markdown_title
+            markdown_title = self.save_and_transform(
+                title_element, content_element, author, target_link, date)
+                
+            self.logger.info(f"Successfully parsed article: {markdown_title}")
+            return markdown_title
+        except Exception as e:
+            self.logger.error(f"Error parsing article {target_link}: {str(e)}")
+            raise
 
     def load_processed_articles(self, filename):
         """
