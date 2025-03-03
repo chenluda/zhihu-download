@@ -19,7 +19,7 @@
 </div>
 
 <div align="center">
-  <img src="https://github.com/chenluda/zhihu-download/assets/45784833/2f23dc41-7a24-48ad-8480-71d106818830" alt="Zhihu Article">
+  <img src="https://github.com/user-attachments/assets/e3faef9a-99c5-43d7-b91b-5a0bdd71fc0e" alt="Zhihu Article">
 </div>
 
 ## 特点
