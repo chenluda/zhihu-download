@@ -28,9 +28,8 @@ app = Flask(__name__)
 def create_zip_from_directory(directory, zip_path):
     """从给定目录创建ZIP文件"""
     supported_extensions = ['.md', '.jpg', '.png', '.gif', '.mp4', '.txt']
-    log_files = ['zhihu_failed_articles.txt', 'zhihu_download.log', 
-                'weixin_download.log', 'csdn_download.log',
-                'csdn_failed_articles.txt']
+    log_files = ['zhihu_download.log', 'weixin_download.log', 'csdn_download.log',]
+    
     try:
         with zipfile.ZipFile(zip_path, "w") as zf:
             for root, _, files in os.walk(directory):
@@ -68,22 +67,24 @@ def index():
             os.makedirs(tmpdir, exist_ok=True)
             old_cwd = os.getcwd()
             os.chdir(tmpdir)
-            
+
             try:
                 markdown_title = parser.judge_type(url)
-                logger.info(f"Successfully processed {url}, title: {markdown_title}")
+                logger.info(
+                    f"Successfully processed {url}, title: {markdown_title}")
             except Exception as e:
                 logger.error(f"Error processing {website} URL {url}: {str(e)}")
                 markdown_title = f"partial_download_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 with open(f"{markdown_title}_error.txt", "w", encoding="utf-8") as f:
                     f.write(f"Error processing URL: {url}\n")
-                    f.write(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    f.write(
+                        f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                     f.write(f"Error: {str(e)}\n")
-            
+
             os.chdir(old_cwd)
 
             zip_path = f"{markdown_title}.zip"
-            
+
             if create_zip_from_directory(tmpdir, zip_path):
                 with open(zip_path, "rb") as f:
                     zip_data = io.BytesIO(f.read())
@@ -93,13 +94,14 @@ def index():
                 return send_file(zip_data, download_name=f"{markdown_title}.zip", as_attachment=True)
             else:
                 return "Failed to create zip file", 500
-                
+
         except Exception as e:
             os.chdir(old_cwd)
             logger.error(f"Error in web request for {website} URL: {e}")
             return "An error occurred while processing your request.", 500
 
     return render_template("index.html")
+
 
 @app.route("/get-cookies")
 def get_cookies():
@@ -122,7 +124,7 @@ def api_download():
 
     if website == "zhihu" and not all([url, cookies, website]):
         return jsonify({"error": "Missing required parameters"}), 400
-    
+
     parser_map = {
         "csdn": (CsdnParser(), "csdn"),
         "zhihu": (ZhihuParser(cookies), "zhihu"),
@@ -138,22 +140,25 @@ def api_download():
         os.makedirs(tmpdir, exist_ok=True)
         old_cwd = os.getcwd()
         os.chdir(tmpdir)
-        
+
         try:
             markdown_title = parser.judge_type(url)
-            logger.info(f"API: Successfully processed {url}, title: {markdown_title}")
+            logger.info(
+                f"API: Successfully processed {url}, title: {markdown_title}")
         except Exception as e:
-            logger.error(f"API: Error processing {website} URL {url}: {str(e)}")
+            logger.error(
+                f"API: Error processing {website} URL {url}: {str(e)}")
             markdown_title = f"partial_download_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             with open(f"{markdown_title}_error.txt", "w", encoding="utf-8") as f:
                 f.write(f"Error processing URL: {url}\n")
-                f.write(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(
+                    f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write(f"Error: {str(e)}\n")
-        
+
         os.chdir(old_cwd)
 
         zip_path = f"{markdown_title}.zip"
-        
+
         if create_zip_from_directory(tmpdir, zip_path):
             with open(zip_path, "rb") as f:
                 zip_data = io.BytesIO(f.read())
@@ -164,11 +169,50 @@ def api_download():
             return send_file(zip_data, download_name=filename, as_attachment=True)
         else:
             return jsonify({"error": "Failed to create zip file"}), 500
-            
+
     except Exception as e:
         os.chdir(old_cwd)
         logger.error(f"API: Error in web request for {website} URL: {e}")
         return jsonify({"error": f"An error occurred while processing your request: {str(e)}"}), 500
+
+
+@app.route("/api/logs", methods=["GET"])
+def get_logs():
+    """API endpoint to retrieve logs"""
+    log_type = request.args.get('type', 'app')
+
+    log_files = {
+        'zhihu': './logs/zhihu_download.log',
+        'csdn': './logs/csdn_download.log',
+        'weixin': './logs/weixin_download.log',
+    }
+
+    if log_type not in log_files:
+        return jsonify({"error": "Invalid log type"}), 400
+
+    log_path = log_files[log_type]
+    if not os.path.exists(log_path):
+        return jsonify({"logs": f"Log file {log_path} not found"}), 404
+
+    try:
+        encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+
+        for encoding in encodings:
+            try:
+                with open(log_path, 'r', encoding=encoding, errors='replace') as f:
+                    lines = f.readlines()
+                    return jsonify({"logs": ''.join(lines)})
+            except UnicodeDecodeError:
+                continue
+
+        with open(log_path, 'rb') as f:
+            binary_content = f.read()
+            text_content = binary_content.decode('utf-8', errors='replace')
+            return jsonify({"logs": text_content})
+
+    except Exception as e:
+        logger.error(f"Error reading log file {log_path}: {str(e)}")
+        return jsonify({"error": f"Failed to read log file: {str(e)}"}), 500
 
 
 def cleanup_files(paths):

@@ -2,42 +2,226 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>获取知乎Cookies的步骤</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
     <style>
+        :root {
+            --primary: #4361ee;
+            --primary-hover: #3a56d4;
+            --secondary: #f8f9fa;
+            --text-color: #333;
+            --light-text: #6c757d;
+            --border: #e9ecef;
+            --light-bg: #f8f9fa;
+            --dark-bg: #212529;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --radius: 8px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            background: white;
-            border: 1px solid #ccc;
+            font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
             padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
+            min-height: 100vh;
+            background-color: var(--secondary);
+            color: var(--text-color);
+            line-height: 1.6;
         }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--light-text);
+            font-size: 1rem;
+            font-weight: normal;
+        }
+        
+        .step-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 25px;
+            background-color: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin-top: 10px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .instruction {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+        
+        .highlight {
+            color: #dc3545;
+            font-weight: bold;
+            background-color: #fff8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .image-container {
+            background-color: var(--light-bg);
+            padding: 15px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-top: 20px;
+        }
+        
         img {
             max-width: 100%;
             height: auto;
             display: block;
-            margin-bottom: 20px;
+            border-radius: calc(var(--radius) - 5px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        h1 {
-            color: #0275d8;
+        
+        .tips {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin: 25px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+        
+        .tips-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .back-button:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--light-text);
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h3>步骤 1: 进入知乎首页并登录</h3>
-        <h5>进入知乎首页，登录账号后按下 F12，点击 Network 选项卡；</h5>
-        <img src="/static/img/step1.png" alt="步骤1">
-    </div>
-    <div class="container">
-        <h3>步骤 2: 获取 Cookies</h3>
-        <h5>点击进入任意知乎文章，在 Network 中点击第一行文档项（纯 id 命名），在右边的 Headers 中找到 Cookie，注意要以<span style="color: red;"> "SESSIONID=" </span>开头。</h5>
-        <img src="/static/img/step2.png" alt="步骤2">
+        <header>
+            <h1><i class="fas fa-cookie"></i> 获取知乎Cookies的步骤</h1>
+            <div class="subtitle">跟随以下步骤获取知乎的cookies用于文章下载</div>
+        </header>
+        
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <h2>进入知乎首页并登录</h2>
+            <p class="instruction">访问知乎网站并确保您已成功登录到您的账号。然后按键盘上的 <strong>F12</strong> 键打开开发者工具，并点击 <strong>Network</strong> 选项卡。</p>
+            
+            <div class="tips">
+                <div class="tips-title"><i class="fas fa-lightbulb"></i> 提示</div>
+                <p>确保您在获取Cookies前已成功登录知乎，否则将无法正常访问需要登录权限的内容。</p>
+            </div>
+            
+            <div class="image-container">
+                <img src="/static/img/step1.png" alt="打开开发者工具的Network选项卡">
+            </div>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <h2>获取 Cookies</h2>
+            <p class="instruction">点击进入任意知乎文章，在 Network 中点击第一行文档项（通常是纯数字ID命名的项目）。在右侧面板中，找到 <strong>Headers</strong> 标签页，向下滚动找到 <strong>Cookie</strong> 字段。复制完整的Cookie值，注意必须以 <span class="highlight">SESSIONID=</span> 开头。</p>
+            
+            <div class="tips">
+                <div class="tips-title"><i class="fas fa-shield-alt"></i> 安全提示</div>
+                <p>Cookies包含您的登录凭证，请勿将其分享给他人。本工具仅使用Cookies获取文章内容，不会储存您的个人信息。</p>
+            </div>
+            
+            <div class="image-container">
+                <img src="/static/img/step2.png" alt="在Headers中找到Cookie">
+            </div>
+        </div>
+        
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <h2>使用获取的Cookies</h2>
+            <p class="instruction">复制获取到的完整Cookie值，回到URL2Markdown工具页面，将其粘贴到"知乎 Cookies"文本框中，然后继续您的文章转换操作。</p>
+            
+            <div class="tips">
+                <div class="tips-title"><i class="fas fa-info-circle"></i> 注意</div>
+                <p>Cookie的有效期通常较短，如果下载失败，可能需要重新获取最新的Cookie。</p>
+            </div>
+        </div>
+        
+        <a href="/" class="back-button">
+            <i class="fas fa-arrow-left"></i> 返回主页
+        </a>
+        
+        <footer>
+            &copy; 2025 Glenn. 所有的Cookies信息仅在您的浏览器中使用，不会被存储或共享。
+        </footer>
     </div>
 </body>
 </html>

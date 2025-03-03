@@ -27,7 +27,7 @@ def get_article_date_csdn(date_element):
     """
     match = re.search(r"\d{4}-\d{2}-\d{2}", date_element.get_text())
     if match:
-        return match.group(1).replace('-', '')
+        return match.group().replace('-', '')
     return "Unknown"
 
 

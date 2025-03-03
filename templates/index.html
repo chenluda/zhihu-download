@@ -9,99 +9,268 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
     <style>
+      :root {
+        --primary: #4361ee;
+        --primary-hover: #3a56d4;
+        --secondary: #f8f9fa;
+        --text-color: #333;
+        --light-text: #6c757d;
+        --border: #e9ecef;
+        --light-bg: #f8f9fa;
+        --dark-bg: #212529;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        --radius: 8px;
+      }
+      
       * {
         box-sizing: border-box;
+        transition: all 0.2s ease;
       }
+      
       body {
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
         margin: 0;
-        padding: 0;
+        padding: 20px;
+        min-height: 100vh;
+        background-color: var(--secondary);
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
-        min-height: 100vh;
-        background-color: #f5f5f5;
+        justify-content: center;
+        color: var(--text-color);
       }
+      
+      .container {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      
       h1 {
+        font-size: 2.2rem;
+        color: var(--primary);
         text-align: center;
-        color: #333;
+        font-weight: 600;
+        margin-bottom: 1.2rem;
+      }
+      
+      /* Tab styling */
+      .tabs {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background-color: white;
+        box-shadow: var(--shadow);
+      }
+      
+      .tab {
+        padding: 12px 30px;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--light-text);
+        background-color: white;
+        border: none;
+        position: relative;
+      }
+      
+      .tab.active {
+        color: var(--primary);
+        background-color: white;
+      }
+      
+      .tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: var(--primary);
+      }
+      
+      .tab:hover:not(.active) {
+        background-color: var(--light-bg);
+      }
+      
+      /* Form styling */
+      form {
+        background-color: white;
+        padding: 2.5rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        width: 100%;
+        margin-bottom: 2rem;
+      }
+      
+      .form-group {
         margin-bottom: 1.5rem;
       }
-      form {
-        background-color: #fff;
-        padding: 3rem;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 600px;
-        margin-bottom: 2rem;
-      }
+      
       label {
-        font-size: 1.2rem;
-        color: #333;
-        margin-bottom: 1rem;
+        font-size: 1rem;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
         display: block;
+        font-weight: 500;
       }
+      
+      .input-group {
+        display: flex;
+        gap: 10px;
+      }
+      
       input,
       textarea {
-        display: block;
-        /* width: 100%; */
-        padding: 0.75rem;
-        margin-bottom: 2rem;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        font-size: 1.2rem;
-      }
-      select {
-        display: block;
-        width: 20%;
-        margin-left: 10px;
-        height: 47px;
-      }
-      .visits {
-        text-align: center;
-        color: blue;
-        font-size: 0.8rem;
-      }
-      button {
-        display: block;
         width: 100%;
-        padding: 0.75rem;
-        background-color: #007bff;
+        padding: 12px 15px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 1rem;
+        color: var(--text-color);
+        background-color: var(--secondary);
+      }
+      
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+      }
+      
+      select {
+        padding: 12px 15px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 1rem;
+        color: var(--text-color);
+        background-color: var(--secondary);
+        min-width: 120px;
+      }
+      
+      button {
+        width: 100%;
+        padding: 14px;
+        background-color: var(--primary);
         border: none;
-        color: #fff;
-        font-size: 1.2rem;
-        border-radius: 3px;
+        border-radius: var(--radius);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
         cursor: pointer;
-        text-transform: uppercase;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        box-shadow: var(--shadow);
       }
+      
       button:hover {
-        background-color: #0056b3;
+        background-color: var(--primary-hover);
       }
-      .social-links {
-        margin-bottom: 1rem;
-        text-align: center;
+      
+      .refresh-button {
+        width: auto;
+        padding: 8px 12px;
+        margin-left: 10px;
       }
-      .social-links a {
-        margin: 0 10px;
-        color: #333;
-        font-size: 24px;
+      
+      .cookie-help {
+        color: var(--primary);
+        cursor: pointer;
+        font-size: 0.85rem;
+        text-align: right;
+        margin-top: 4px;
+        display: block;
       }
+      
       .caution {
-        color: red;
-        font-size: 0.8rem;
+        color: #dc3545;
+        font-size: 0.85rem;
         text-align: center;
+        padding: 10px;
+        background-color: #fff8f8;
+        border-radius: var(--radius);
+        margin: 1rem 0;
       }
+      
+      /* Log container */
+      .log-container {
+        background-color: white;
+        padding: 2.5rem;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        width: 100%;
+        margin-bottom: 2rem;
+      }
+      
+      .log-selector {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      
+      .log-display {
+        height: 400px;
+        overflow-y: auto;
+        background-color: var(--light-bg);
+        padding: 15px;
+        border-radius: var(--radius);
+        font-family: 'Consolas', 'Monaco', monospace;
+        white-space: pre-wrap;
+        font-size: 0.9rem;
+        border: 1px solid var(--border);
+      }
+      
+      /* Stats and footer */
+      .stats {
+        background-color: white;
+        border-radius: var(--radius);
+        padding: 20px;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        text-align: center;
+        width: 100%;
+      }
+      
+      .stats p {
+        margin: 8px 0;
+        font-size: 0.95rem;
+      }
+      
+      .stats span {
+        color: var(--primary);
+        font-weight: bold;
+      }
+      
+      .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 1.5rem;
+      }
+      
+      .social-links a {
+        color: var(--light-text);
+        font-size: 24px;
+        transition: transform 0.2s ease;
+      }
+      
+      .social-links a:hover {
+        color: var(--primary);
+        transform: translateY(-2px);
+      }
+      
       footer {
         font-size: 0.9rem;
-        color: #666;
+        color: var(--light-text);
         text-align: center;
+        margin-bottom: 20px;
       }
     </style>
     <script>
-      // 在页面加载时调用函数检查初始状态
-      document.addEventListener("DOMContentLoaded", (event) => {
+      document.addEventListener("DOMContentLoaded", () => {
         showHideDiv();
       });
 
@@ -130,10 +299,8 @@
       }
 
       function showHideDiv() {
-        var websiteSelect = document.getElementById("website");
-        var conditionalDiv = document.getElementById("conditionalDiv");
-
-        console.log("websiteSelect:", websiteSelect.value);
+        const websiteSelect = document.getElementById("website");
+        const conditionalDiv = document.getElementById("conditionalDiv");
 
         if (websiteSelect.value === "zhihu") {
           conditionalDiv.style.display = "block";
@@ -141,79 +308,152 @@
           conditionalDiv.style.display = "none";
         }
       }
+
+      function showMainForm() {
+        document.getElementById('mainForm').style.display = 'block';
+        document.getElementById('logContainer').style.display = 'none';
+        document.getElementById('mainTab').classList.add('active');
+        document.getElementById('logsTab').classList.remove('active');
+      }
+
+      function showLogs() {
+        document.getElementById('mainForm').style.display = 'none';
+        document.getElementById('logContainer').style.display = 'block';
+        document.getElementById('mainTab').classList.remove('active');
+        document.getElementById('logsTab').classList.add('active');
+        fetchLogs();
+      }
+
+      function fetchLogs() {
+        const logType = document.getElementById('logType').value;
+        fetch(`/api/logs?type=${logType}`)
+          .then(response => response.json())
+          .then(data => {
+            const logDisplay = document.getElementById('logDisplay');
+            if (data.error) {
+              logDisplay.textContent = `Error: ${data.error}`;
+            } else if (data.logs) {
+              logDisplay.textContent = data.logs;
+              logDisplay.scrollTop = logDisplay.scrollHeight;
+            } else {
+              logDisplay.textContent = 'No logs found';
+            }
+          })
+          .catch(error => {
+            document.getElementById('logDisplay').textContent = `Error fetching logs: ${error}`;
+          });
+      }
     </script>
   </head>
   <body>
-    <form method="POST" action="/">
-      <h1>URL2Markdown</h1>
-      <label for="url">网页URL：</label>
-      <div style="display: flex">
-        <input
-          type="url"
-          name="url"
-          id="url"
-          required
-          onchange="onUrlChange()"
-          style="width: 80%"
-        />
-        <select name="website" id="website" required onchange="showHideDiv()">
-          <option value="zhihu" selected>知乎</option>
-          <option value="csdn">CSDN</option>
-          <option value="weixin">微信公众号</option>
-        </select>
+    <div class="container">
+      <div class="tabs">
+        <div id="mainTab" class="tab active" onclick="showMainForm()">
+          <i class="fas fa-home"></i> 主页
+        </div>
+        <div id="logsTab" class="tab" onclick="showLogs()">
+          <i class="fas fa-list-alt"></i> 日志
+        </div>
       </div>
-      <div id="conditionalDiv" style="display: none">
-        <label for="cookies">知乎 Cookies：</label>
-        <textarea
-          name="cookies"
-          id="cookies"
-          rows="4"
-          style="width: 100%"
-        ></textarea>
-        <p
-          style="
-            text-align: center;
-            color: blue;
-            cursor: pointer;
-            font-size: 12px;
-          "
-          onclick="window.open('/get-cookies', '_blank')"
-        >
-          如何获取知乎 Cookies？
+
+      <form id="mainForm" method="POST" action="/">
+        <h1><i class="fas fa-file-alt"></i> URL2Markdown</h1>
+        
+        <div class="form-group">
+          <label for="url"><i class="fas fa-link"></i> 网页URL：</label>
+          <div class="input-group">
+            <input
+              type="url"
+              name="url"
+              id="url"
+              required
+              onchange="onUrlChange()"
+              placeholder="请输入文章链接..."
+            />
+            <select name="website" id="website" required onchange="showHideDiv()">
+              <option value="zhihu" selected>知乎</option>
+              <option value="csdn">CSDN</option>
+              <option value="weixin">微信公众号</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="conditionalDiv" class="form-group" style="display: none">
+          <label for="cookies"><i class="fas fa-cookie"></i> 知乎 Cookies：</label>
+          <textarea
+            name="cookies"
+            id="cookies"
+            rows="4"
+            placeholder="粘贴您的知乎 cookies 到这里..."
+          ></textarea>
+          <span
+            class="cookie-help"
+            onclick="window.open('/get-cookies', '_blank')"
+          >
+            <i class="fas fa-question-circle"></i> 如何获取知乎 Cookies？
+          </span>
+          <div class="caution">
+            <i class="fas fa-exclamation-triangle"></i> 注意：虽然本网站不会保留任何记录，但使用 Cookie 仍有风险，建议前往 GitHub 自行部署。
+          </div>
+        </div>
+        
+        <button type="submit">
+          <i class="fas fa-sync-alt"></i> 转换为 Markdown
+        </button>
+      </form>
+
+      <div id="logContainer" class="log-container" style="display: none">
+        <h1><i class="fas fa-clipboard-list"></i> 系统日志</h1>
+        
+        <div class="log-selector">
+          <label for="logType">选择日志类型：</label>
+          <select id="logType" onchange="fetchLogs()">
+            <!-- <option value="app">应用日志</option> -->
+            <option value="zhihu">知乎下载日志</option>
+            <option value="csdn">CSDN下载日志</option>
+            <option value="weixin">微信公众号下载日志</option>
+          </select>
+          <button type="button" class="refresh-button" onclick="fetchLogs()">
+            <i class="fas fa-sync-alt"></i> 刷新
+          </button>
+        </div>
+        
+        <div id="logDisplay" class="log-display">
+          选择日志类型并加载...
+        </div>
+      </div>
+
+      <div class="stats">
+        <p>
+          <i class="fas fa-download"></i> 已成功下载了 <span>{{ total_downloads }}</span> 次！
         </p>
-        <p class="caution">
-          注意：虽然本网站不会保留任何记录，但使用 Cookie 仍有风险，建议前往
-          GitHub 自行部署。
+        <p>
+          <i class="fas fa-user-clock"></i> 欢迎今日第 <span>{{ daily_visits }}</span> 位伙伴！
+        </p>
+        <p>
+          <i class="fas fa-users"></i> 总共有 <span>{{ total_visits }}</span> 位伙伴访问本网站。
         </p>
       </div>
-      <button type="submit">转换为 Markdown</button>
-    </form>
-    <div class="visits">
-      <p>
-        已成功下载了 <span style="color: red">{{ total_downloads }}</span> 次！
-      </p>
-      <p>
-        欢迎今日第 <span style="color: red">{{ daily_visits }}</span> 位伙伴！
-      </p>
-      <p>
-        总共有
-        <span style="color: red">{{ total_visits }}</span> 位伙伴访问本网站。
-      </p>
+      
+      <div class="social-links">
+        <a
+          href="https://github.com/chenluda/zhihu-download"
+          target="_blank"
+          title="GitHub"
+        ><i class="fab fa-github"></i></a>
+        <a 
+          href="https://www.zhihu.com/people/Glenn" 
+          target="_blank" 
+          title="Zhihu"
+        ><i class="fab fa-zhihu"></i></a>
+        <a 
+          href="mailto:chenluda01@gmail.com" 
+          target="_blank" 
+          title="Email"
+        ><i class="fas fa-envelope"></i></a>
+      </div>
+      
+      <footer>&copy; 2025 Glenn.</footer>
     </div>
-    <div class="social-links">
-      <a
-        href="https://github.com/chenluda/zhihu-download"
-        target="_blank"
-        title="GitHub"
-        ><i class="fab fa-github"></i
-      ></a>
-      <a href="https://www.zhihu.com/people/Glenn" target="_blank" title="Zhihu"
-        ><i class="fab fa-zhihu"></i
-      ></a>
-      <a href="mailto:chenluda01@gmail.com" target="_blank" title="Email"
-        ><i class="fas fa-envelope"></i
-      ></a>
-    </div>
-    <footer>&copy; 2025 Glenn.</footer>
   </body>
 </html>
