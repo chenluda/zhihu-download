@@ -397,6 +397,20 @@
           </div>
         </div>
         
+        <div class="form-group">
+          <div class="checkbox-wrapper" style="display: flex; align-items: center; margin-bottom: 15px;">
+            <input 
+              type="checkbox" 
+              id="keep_logs" 
+              name="keep_logs" 
+              style="width: auto; margin-right: 10px;"
+            >
+            <label for="keep_logs" style="margin-bottom: 0;">
+              <i class="fas fa-file-alt"></i> 在下载包中保留日志文件用于调试
+            </label>
+          </div>
+        </div>
+
         <button type="submit">
           <i class="fas fa-sync-alt"></i> 转换为 Markdown
         </button>
@@ -408,7 +422,6 @@
         <div class="log-selector">
           <label for="logType">选择日志类型：</label>
           <select id="logType" onchange="fetchLogs()">
-            <!-- <option value="app">应用日志</option> -->
             <option value="zhihu">知乎下载日志</option>
             <option value="csdn">CSDN下载日志</option>
             <option value="weixin">微信公众号下载日志</option>

@@ -12,29 +12,45 @@ from utils.util import insert_new_line, get_article_date, download_image, downlo
 
 
 class ZhihuParser:
-    def __init__(self, cookies, hexo_uploader=False):
-        self.hexo_uploader = hexo_uploader  # 是否为 hexo 博客上传
-        self.cookies = cookies  # 登录知乎后的 cookies
-        self.session = requests.Session()  # 创建会话
-        # 用户代理
+    def __init__(self, cookies, hexo_uploader=False, keep_logs=False):
+        self.hexo_uploader = hexo_uploader
+        self.cookies = cookies
+        self.session = requests.Session()
+        self.keep_logs = keep_logs
         self.user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        self.headers = {  # 请求头
+        self.headers = {
             'User-Agent': self.user_agents,
             'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
             'Cookie': self.cookies
         }
-        self.session.headers.update(self.headers)  # 更新会话的请求头
-        self.soup = None  # 存储页面的 BeautifulSoup 对象
-        # 设置日志
+        self.session.headers.update(self.headers)
+        self.soup = None
         self.logger = logging.getLogger('zhihu_parser')
-        self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            handler = logging.FileHandler(
-                './logs/zhihu_download.log', encoding='utf-8')
-            formatter = logging.Formatter(
-                '%(asctime)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
+        
+        if self.keep_logs:
+            self.logger.setLevel(logging.INFO)
+            if not self.logger.handlers and not os.path.exists('./logs'):
+                os.makedirs('./logs', exist_ok=True)
+            
+            if not self.logger.handlers:
+                handler = logging.FileHandler(
+                    './logs/zhihu_download.log', encoding='utf-8')
+                formatter = logging.Formatter(
+                    '%(asctime)s - %(level别)s - %(message)s')
+                handler.setFormatter(formatter)
+                self.logger.addHandler(handler)
+        else:
+            self.logger.setLevel(logging.CRITICAL + 1)
+
+    def log(self, level, message):
+        """自定义日志函数，只在keep_logs为True时记录"""
+        if self.keep_logs:
+            if level == 'info':
+                self.logger.info(message)
+            elif level == 'warning':
+                self.logger.warning(message)
+            elif level == 'error':
+                self.logger.error(message)
 
     def check_connect_error(self, target_link):
         """
@@ -44,19 +60,19 @@ class ZhihuParser:
             response = self.session.get(target_link)
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            self.logger.error(f"HTTP error occurred: {err}")
+            self.log('error', f"HTTP error occurred: {err}")
             raise
         except requests.exceptions.RequestException as err:
-            self.logger.error(f"Error occurred: {err}")
+            self.log('error', f"Error occurred: {err}")
             raise
 
         self.soup = BeautifulSoup(response.content, "html.parser")
         if self.soup.text.find("有问题，就会有答案打开知乎App在「我的页」右上角打开扫一扫其他扫码方式") != -1:
-            self.logger.warning("Cookies are required to access the article.")
+            self.log('warning', "Cookies are required to access the article.")
             raise ValueError("Cookies are required to access the article.")
 
         if self.soup.text.find("你似乎来到了没有知识存在的荒原") != -1:
-            self.logger.warning("The page does not exist.")
+            self.log('warning', "The page does not exist.")
             raise ValueError("The page does not exist.")
 
     def judge_type(self, target_link):
@@ -79,7 +95,7 @@ class ZhihuParser:
 
             return title
         except Exception as e:
-            self.logger.error(f"Error processing URL {target_link}: {str(e)}")
+            self.log('error', f"Error processing URL {target_link}: {str(e)}")
             # Re-raise to allow the caller to decide what to do
             raise
 
@@ -149,8 +165,7 @@ class ZhihuParser:
                     # 在图片后插入换行符
                     insert_new_line(self.soup, img, 1)
                 except Exception as e:
-                    self.logger.warning(
-                        f"Error downloading image {img.get('src', 'unknown')}: {str(e)}")
+                    self.log('warning', f"Error downloading image {img.get('src', 'unknown')}: {str(e)}")
                     # 继续处理下一张图片，不中断进程
 
             # 在图例后面加上换行符
@@ -268,11 +283,10 @@ class ZhihuParser:
                             for quality, details in video_info['video']['playlist'].items():
                                 video_url = details['playUrl']
                 except KeyError as e:
-                    self.logger.error(f"Key error in parsing JSON data: {e}")
+                    self.log('error', f"Key error in parsing JSON data: {e}")
                     return None
             else:
-                self.logger.error(
-                    "No suitable script tag found for video data")
+                self.log('error', "No suitable script tag found for video data")
                 return None
 
             os.makedirs(os.path.dirname(markdown_title), exist_ok=True)
@@ -281,7 +295,7 @@ class ZhihuParser:
 
             return markdown_title
         except Exception as e:
-            self.logger.error(f"Error parsing zvideo {target_link}: {str(e)}")
+            self.log('error', f"Error parsing zvideo {target_link}: {str(e)}")
             raise
 
     def parse_zhihu_article(self, target_link):
@@ -302,7 +316,7 @@ class ZhihuParser:
 
             return markdown_title
         except Exception as e:
-            self.logger.error(f"Error parsing article {target_link}: {str(e)}")
+            self.log('error', f"Error parsing article {target_link}: {str(e)}")
             raise
 
     def parse_zhihu_answer(self, target_link):
@@ -324,7 +338,7 @@ class ZhihuParser:
 
             return markdown_title
         except Exception as e:
-            self.logger.error(f"Error parsing answer {target_link}: {str(e)}")
+            self.log('error', f"Error parsing answer {target_link}: {str(e)}")
             raise
 
     def load_processed_articles(self, filename):
@@ -360,8 +374,7 @@ class ZhihuParser:
             except (ValueError, IndexError):
                 # 如果无法解析总文章数，使用-1表示未知
                 total_articles = -1
-                self.logger.warning(
-                    "Could not determine total article count, using undefined count")
+                self.log('warning', "Could not determine total article count, using undefined count")
 
             folder_name = get_valid_filename(title)
             os.makedirs(folder_name, exist_ok=True)
@@ -424,8 +437,7 @@ class ZhihuParser:
                                 item_link = f"https://www.zhihu.com/question/{item['question']['id']}/answer/{item_id}"
                                 self.parse_zhihu_answer(item_link)
                             else:
-                                self.logger.warning(
-                                    f"Unknown item type: {item['type']}")
+                                self.log('warning', f"Unknown item type: {item['type']}")
                                 continue
 
                             # 成功处理，记录并更新进度
@@ -445,8 +457,7 @@ class ZhihuParser:
                             failed_articles.add(item_id)
                             with open(failed_articles_filename, 'a', encoding='utf-8') as file:
                                 file.write(f"{item_id}\n")
-                            self.logger.error(
-                                f"Error processing {item['type']} {item_id}: {str(e)}")
+                            self.log('error', f"Error processing {item['type']} {item_id}: {str(e)}")
                             # 继续处理下一篇文章
 
                     if data["paging"]["is_end"]:
@@ -454,13 +465,12 @@ class ZhihuParser:
 
                     offset += 10
                 except Exception as e:
-                    self.logger.error(f"Error fetching column data: {str(e)}")
+                    self.log('error', f"Error fetching column data: {str(e)}")
                     # 尝试继续下一页
                     offset += 10
                     # 如果连续多次失败，可以考虑中断
                     if offset > 100:  # 例如，如果失败超过10页，就放弃
-                        self.logger.error(
-                            "Too many failures fetching column data, giving up")
+                        self.log('error', "Too many failures fetching column data, giving up")
                         break
 
             progress_bar.close()  # 完成后关闭进度条
@@ -470,16 +480,15 @@ class ZhihuParser:
             if len(failed_articles) == 0 and os.path.exists(failed_articles_filename):
                 os.remove(failed_articles_filename)
 
-            self.logger.info(
-                f"Column processing complete. Success: {success_count}, Failed: {failure_count}")
+            self.log('info', f"Column processing complete. Success: {success_count}, Failed: {failure_count}")
 
             # 返回文件夹名，即使有部分文章失败
             return folder_name
         except Exception as e:
-            self.logger.error(f"Error parsing column {target_link}: {str(e)}")
+            self.log('error', f"Error parsing column {target_link}: {str(e)}")
             # 在这种情况下，返回当前文件夹名，以便打包已下载的内容
             return os.path.basename(os.getcwd())
-        
+
 
 if __name__ == "__main__":
     cookies = "your cookies here"

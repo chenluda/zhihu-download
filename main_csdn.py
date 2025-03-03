@@ -12,27 +12,43 @@ from utils.util import insert_new_line, get_article_date, download_image, downlo
 
 
 class CsdnParser:
-    def __init__(self, hexo_uploader=False):
-        self.hexo_uploader = hexo_uploader  # 是否为 hexo 博客上传
-        self.session = requests.Session()  # 创建会话
-        # 用户代理
+    def __init__(self, hexo_uploader=False, keep_logs=False):
+        self.hexo_uploader = hexo_uploader
+        self.session = requests.Session()
+        self.keep_logs = keep_logs
         self.user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        self.headers = {  # 请求头
+        self.headers = {
             'User-Agent': self.user_agents,
             'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
         }
-        self.session.headers.update(self.headers)  # 更新会话的请求头
-        self.soup = None  # 存储页面的 BeautifulSoup 对象
-        # 设置日志
+        self.session.headers.update(self.headers)
+        self.soup = None
         self.logger = logging.getLogger('csdn_parser')
-        self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            handler = logging.FileHandler(
-                './logs/csdn_download.log', encoding='utf-8')
-            formatter = logging.Formatter(
-                '%(asctime)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
+        
+        if self.keep_logs:
+            self.logger.setLevel(logging.INFO)
+            if not self.logger.handlers and not os.path.exists('./logs'):
+                os.makedirs('./logs', exist_ok=True)
+            
+            if not self.logger.handlers:
+                handler = logging.FileHandler(
+                    './logs/csdn_download.log', encoding='utf-8')
+                formatter = logging.Formatter(
+                    '%(asctime)s - %(levelname)s - %(message)s')
+                handler.setFormatter(formatter)
+                self.logger.addHandler(handler)
+        else:
+            self.logger.setLevel(logging.CRITICAL + 1)
+
+    def log(self, level, message):
+        """自定义日志函数，只在keep_logs为True时记录"""
+        if self.keep_logs:
+            if level == 'info':
+                self.logger.info(message)
+            elif level == 'warning':
+                self.logger.warning(message)
+            elif level == 'error':
+                self.logger.error(message)
 
     def check_connect_error(self, target_link):
         """
@@ -42,10 +58,10 @@ class CsdnParser:
             response = self.session.get(target_link)
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            self.logger.error(f"HTTP error occurred: {err}")
+            self.log('error', f"HTTP error occurred: {err}")
             raise
         except requests.exceptions.RequestException as err:
-            self.logger.error(f"Error occurred: {err}")
+            self.log('error', f"Error occurred: {err}")
             raise
 
         self.soup = BeautifulSoup(response.content, "html.parser")
@@ -64,7 +80,7 @@ class CsdnParser:
 
             return title
         except Exception as e:
-            self.logger.error(f"Error processing URL {target_link}: {str(e)}")
+            self.log('error', f"Error processing URL {target_link}: {str(e)}")
             raise
 
     def save_and_transform(self, title_element, content_element, author, target_link, date=None):
@@ -130,8 +146,7 @@ class CsdnParser:
                     # 在图片后插入换行符
                     insert_new_line(self.soup, img, 1)
                 except Exception as e:
-                    self.logger.warning(
-                        f"Error downloading image {img.get('src', 'unknown')}: {str(e)}")
+                    self.log('warning', f"Error downloading image {img.get('src', 'unknown')}: {str(e)}")
                     # 继续处理下一张图片，不中断进程
 
             # 在图例后面加上换行符
@@ -236,11 +251,11 @@ class CsdnParser:
             content_element = self.soup.select_one("div#content_views")
 
             if not title_element or not content_element:
-                self.logger.warning("Could not find title or content elements")
+                self.log('warning', "Could not find title or content elements")
                 if not title_element:
-                    self.logger.warning("Missing title element")
+                    self.log('warning', "Missing title element")
                 if not content_element:
-                    self.logger.warning("Missing content element")
+                    self.log('warning', "Missing content element")
 
             author_element = self.soup.select_one('div.bar-content')
             if author_element and author_element.find_all("a"):
@@ -249,15 +264,15 @@ class CsdnParser:
             else:
                 author = "未知作者"
                 date = None
-                self.logger.warning("Could not find author information")
+                self.log('warning', "Could not find author information")
 
             markdown_title = self.save_and_transform(
                 title_element, content_element, author, target_link, date)
 
-            self.logger.info(f"Successfully parsed article: {markdown_title}")
+            self.log('info', f"Successfully parsed article: {markdown_title}")
             return markdown_title
         except Exception as e:
-            self.logger.error(f"Error parsing article {target_link}: {str(e)}")
+            self.log('error', f"Error parsing article {target_link}: {str(e)}")
             raise
 
     def load_processed_articles(self, filename):
@@ -292,8 +307,7 @@ class CsdnParser:
             except (ValueError, IndexError):
                 # 如果无法解析总文章数，使用-1表示未知
                 total_articles = -1
-                self.logger.warning(
-                    "Could not determine total article count, using undefined count")
+                self.log('warning', "Could not determine total article count, using undefined count")
                 
             folder_name = get_valid_filename(title)
             os.makedirs(folder_name, exist_ok=True)
@@ -326,7 +340,7 @@ class CsdnParser:
 
             ul_element = self.soup.find('ul', class_='column_article_list')
             if not ul_element:
-                self.logger.error("Could not find article list element")
+                self.log('error', "Could not find article list element")
                 raise ValueError("Article list not found on page")
                 
             for li in ul_element.find_all('li'):
@@ -358,11 +372,10 @@ class CsdnParser:
                         failed_articles.add(article_id)
                         with open(failed_articles_filename, 'a', encoding='utf-8') as file:
                             file.write(f"{article_id}\n")
-                        self.logger.error(
-                            f"Error processing article {article_id}: {str(e)}")
+                        self.log('error', f"Error processing article {article_id}: {str(e)}")
                         # 继续处理下一篇文章
                 except Exception as e:
-                    self.logger.warning(f"Error processing list item: {str(e)}")
+                    self.log('warning', f"Error processing list item: {str(e)}")
                     # 继续处理下一个列表项
 
             progress_bar.close()  # 完成后关闭进度条
@@ -371,8 +384,7 @@ class CsdnParser:
             if len(failed_articles) == 0 and os.path.exists(failed_articles_filename):
                 os.remove(failed_articles_filename)
 
-            self.logger.info(
-                f"Column processing complete. Success: {success_count}, Failed: {failure_count}")
+            self.log('info', f"Column processing complete. Success: {success_count}, Failed: {failure_count}")
             
             # 只有在全部成功的情况下删除已处理文件
             if failure_count == 0 and os.path.exists(processed_filename):
@@ -380,7 +392,7 @@ class CsdnParser:
 
             return folder_name
         except Exception as e:
-            self.logger.error(f"Error parsing column {target_link}: {str(e)}")
+            self.log('error', f"Error parsing column {target_link}: {str(e)}")
             # 在这种情况下，返回当前文件夹名，以便打包已下载的内容
             return os.path.basename(os.getcwd())
 

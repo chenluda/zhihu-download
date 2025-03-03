@@ -12,27 +12,43 @@ from utils.util import insert_new_line, get_article_date, download_image, downlo
 
 
 class WeixinParser:
-    def __init__(self, hexo_uploader=False):
-        self.hexo_uploader = hexo_uploader  # 是否为 hexo 博客上传
-        self.session = requests.Session()  # 创建会话
-        # 用户代理
+    def __init__(self, hexo_uploader=False, keep_logs=False):
+        self.hexo_uploader = hexo_uploader
+        self.session = requests.Session()
+        self.keep_logs = keep_logs
         self.user_agents = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        self.headers = {  # 请求头
+        self.headers = {
             'User-Agent': self.user_agents,
             'Accept-Language': 'en,zh-CN;q=0.9,zh;q=0.8',
         }
-        self.session.headers.update(self.headers)  # 更新会话的请求头
-        self.soup = None  # 存储页面的 BeautifulSoup 对象
-        # 设置日志
+        self.session.headers.update(self.headers)
+        self.soup = None
         self.logger = logging.getLogger('weixin_parser')
-        self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            handler = logging.FileHandler(
-                './logs/weixin_download.log', encoding='utf-8')
-            formatter = logging.Formatter(
-                '%(asctime)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
+        
+        if self.keep_logs:
+            self.logger.setLevel(logging.INFO)
+            if not self.logger.handlers and not os.path.exists('./logs'):
+                os.makedirs('./logs', exist_ok=True)
+            
+            if not self.logger.handlers:
+                handler = logging.FileHandler(
+                    './logs/weixin_download.log', encoding='utf-8')
+                formatter = logging.Formatter(
+                    '%(asctime)s - %(levelname)s - %(message)s')
+                handler.setFormatter(formatter)
+                self.logger.addHandler(handler)
+        else:
+            self.logger.setLevel(logging.CRITICAL + 1)
+
+    def log(self, level, message):
+        """自定义日志函数，只在keep_logs为True时记录"""
+        if self.keep_logs:
+            if level == 'info':
+                self.logger.info(message)
+            elif level == 'warning':
+                self.logger.warning(message)
+            elif level == 'error':
+                self.logger.error(message)
 
     def check_connect_error(self, target_link):
         """
@@ -42,10 +58,10 @@ class WeixinParser:
             response = self.session.get(target_link)
             response.raise_for_status()
         except requests.exceptions.HTTPError as err:
-            self.logger.error(f"HTTP error occurred: {err}")
+            self.log('error', f"HTTP error occurred: {err}")
             raise
         except requests.exceptions.RequestException as err:
-            self.logger.error(f"Error occurred: {err}")
+            self.log('error', f"Error occurred: {err}")
             raise
 
         self.soup = BeautifulSoup(response.content, "html.parser")
@@ -58,7 +74,7 @@ class WeixinParser:
             title = self.parse_article(target_link)
             return title
         except Exception as e:
-            self.logger.error(f"Error processing URL {target_link}: {str(e)}")
+            self.log('error', f"Error processing URL {target_link}: {str(e)}")
             raise
 
     def save_and_transform(self, title_element, content_element, author, target_link, date=None):
@@ -142,8 +158,7 @@ class WeixinParser:
                     # 在图片后插入换行符
                     insert_new_line(self.soup, img, 1)
                 except Exception as e:
-                    self.logger.warning(
-                        f"Error downloading image {img.get('data-src', img.get('src', 'unknown'))}: {str(e)}")
+                    self.log('warning', f"Error downloading image {img.get('data-src', img.get('src', 'unknown'))}: {str(e)}")
                     # 继续处理下一张图片，不中断进程
 
             # 在图例后面加上换行符
@@ -248,11 +263,11 @@ class WeixinParser:
             content_element = self.soup.select_one("div#js_content")
             
             if not title_element or not content_element:
-                self.logger.warning("Could not find title or content elements")
+                self.log('warning', "Could not find title or content elements")
                 if not title_element:
-                    self.logger.warning("Missing title element")
+                    self.log('warning', "Missing title element")
                 if not content_element:
-                    self.logger.warning("Missing content element")
+                    self.log('warning', "Missing content element")
 
             date = get_article_date_weixin(self.soup.find_all('script', type='text/javascript'))
             
@@ -261,15 +276,15 @@ class WeixinParser:
                 author = author_element.find_all("a")[0].text.strip()
             else:
                 author = "未知作者"
-                self.logger.warning("Could not find author information")
+                self.log('warning', "Could not find author information")
 
             markdown_title = self.save_and_transform(
                 title_element, content_element, author, target_link, date)
                 
-            self.logger.info(f"Successfully parsed article: {markdown_title}")
+            self.log('info', f"Successfully parsed article: {markdown_title}")
             return markdown_title
         except Exception as e:
-            self.logger.error(f"Error parsing article {target_link}: {str(e)}")
+            self.log('error', f"Error parsing article {target_link}: {str(e)}")
             raise
 
     def load_processed_articles(self, filename):
