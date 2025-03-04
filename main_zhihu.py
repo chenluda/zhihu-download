@@ -36,7 +36,7 @@ class ZhihuParser:
                 handler = logging.FileHandler(
                     './logs/zhihu_download.log', encoding='utf-8')
                 formatter = logging.Formatter(
-                    '%(asctime)s - %(level别)s - %(message)s')
+                    '%(asctime)s - %(levelname)s - %(message)s')
                 handler.setFormatter(formatter)
                 self.logger.addHandler(handler)
         else:
@@ -293,6 +293,8 @@ class ZhihuParser:
 
             download_video(video_url, markdown_title, self.session)
 
+            self.log('info', f"Successfully parsed video: {markdown_title}")
+
             return markdown_title
         except Exception as e:
             self.log('error', f"Error parsing zvideo {target_link}: {str(e)}")
@@ -313,6 +315,8 @@ class ZhihuParser:
 
             markdown_title = self.save_and_transform(
                 title_element, content_element, author, target_link, date)
+            
+            self.log('info', f"Successfully parsed article: {markdown_title}")
 
             return markdown_title
         except Exception as e:
@@ -335,6 +339,8 @@ class ZhihuParser:
             # 解析知乎文章并保存为Markdown格式文件
             markdown_title = self.save_and_transform(
                 title_element, content_element, author, target_link, date)
+
+            self.log('info', f"Successfully parsed answer: {markdown_title}")
 
             return markdown_title
         except Exception as e:
