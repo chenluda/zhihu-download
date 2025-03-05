@@ -98,7 +98,7 @@ cd zhihu-download
 ```bash
 docker build -t zhihu2markdown .
 ```
-连接远程仓库（阿里云容器镜像服务 ACR：https://www.aliyun.com/product/acr/）
+连接远程仓库（ 阿里云容器镜像服务 ACR：https://www.aliyun.com/product/acr/ ）
 ```bash
 docker login --username=xxx registry.cn-xxx.aliyuncs.com
 ```
