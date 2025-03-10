@@ -16,6 +16,9 @@
   <a href="http://8.130.108.230:5000/" target="_blank">
     <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
   </a>
+  <a href="#">
+    <img alt="Support" src="https://img.shields.io/badge/支持-TramperMonkey-blue" />
+  </a>
 </div>
 
 <div align="center">
