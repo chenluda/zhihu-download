@@ -119,6 +119,13 @@ docker pull registry.cn-xxx.aliyuncs.com/xxx/zhihu2markdown:latest
 docker run --rm -p 5000:5000 registry.cn-xxx.aliyuncs.com/xxx/zhihu2markdown:latest
 ```
 
+> **Note**
+>
+> 新版 Docker 需将 Dockerfile 第 11 行 "ENV NAME World" 改为 "ENV NAME=World"。
+> 
+> 感谢 [不才](https://github.com/bucaiGitHub) 的提醒！
+
+
 ## 更新日志
 
 * 2025-03-03：添加日志记录；专栏下载报错跳过；添加 Dockerfile。
@@ -128,7 +135,7 @@ docker run --rm -p 5000:5000 registry.cn-xxx.aliyuncs.com/xxx/zhihu2markdown:lat
 * 2024-04-29：增加对视频的处理。
 * 2024-04-22：增加 Cookies 以应对验证机制。
 * 2024-03-14：增加动图支持；更改链接格式。
-* 2023-12-27：更改内容标题格式；增加对数学公式中 `\tag{*}` 的特殊处理。（感谢 [korruz](https://github.com/korruz) 的意见！）
+* 2023-12-27：更改内容标题格式；增加对数学公式中 `\tag{*}` 的特殊处理。（感谢 [HuangMinlong](https://github.com/korruz) 的意见！）
 * 2023-11-22：更改内容标题格式。
 * 2023-10-27：优化代码，增加断点续传功能，改进图片处理和链接优化。（感谢 [Aswatthafei](https://github.com/Aswatthafei) 的提醒！）
 * 2023-08-19：修复公式和卡片链接相关的多项 bug。
