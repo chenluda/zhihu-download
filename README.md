@@ -95,7 +95,7 @@ python app.py
 - [Microsoft Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd?refid=bingshortanswersdownload)
 
 3.2 运行脚本
-![image](https://github.com/user-attachments/assets/51e8bc20-7dbd-49b2-ba73-89cdfc917200)
+![420728733-51e8bc20-7dbd-49b2-ba73-89cdfc917200](https://github.com/user-attachments/assets/d571ed29-b3f1-45a9-b216-0903598a3648)
 
 ## 4. 容器部署（以阿里云为例）
 
