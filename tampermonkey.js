@@ -126,6 +126,41 @@
             }
         });
 
+        // Handle tables
+        service.addRule('tables', {
+            filter: ['table'],
+            replacement: function(content, node) {
+                // Create arrays to store each row of the table
+                const rows = Array.from(node.querySelectorAll('tr'));
+                if (rows.length === 0) return content;
+                
+                // Process each row
+                const markdownRows = rows.map(row => {
+                    // Get all cells in the row (th or td)
+                    const cells = Array.from(row.querySelectorAll('th, td'));
+                    // Convert each cell to text and trim whitespace
+                    return '| ' + cells.map(cell => {
+                        const cellText = cell.textContent.trim().replace(/\n/g, ' ');
+                        return cellText || ' ';
+                    }).join(' | ') + ' |';
+                });
+                
+                // If the first row contains th elements, add a separator row
+                if (rows[0] && rows[0].querySelector('th')) {
+                    const headerCells = Array.from(rows[0].querySelectorAll('th'));
+                    const separatorRow = '| ' + headerCells.map(() => '---').join(' | ') + ' |';
+                    markdownRows.splice(1, 0, separatorRow);
+                } else if (rows.length > 0) {
+                    // If no header row but we have rows, add a separator after the first row anyway
+                    const firstRowCells = Array.from(rows[0].querySelectorAll('td')).length;
+                    const separatorRow = '| ' + Array(firstRowCells).fill('---').join(' | ') + ' |';
+                    markdownRows.splice(1, 0, separatorRow);
+                }
+                
+                return '\n\n' + markdownRows.join('\n') + '\n\n';
+            }
+        });
+
         return service;
     };
 
