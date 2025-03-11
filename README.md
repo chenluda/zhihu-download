@@ -16,7 +16,7 @@
   <a href="http://8.130.108.230:5000/" target="_blank">
     <img alt="Web" src="https://img.shields.io/badge/演示网站-Web-red" />
   </a>
-  <a href="#">
+  <a href="https://github.com/chenluda/zhihu-download#3-%E6%B2%B9%E7%8C%B4tampermonkey%E8%84%9A%E6%9C%AC">
     <img alt="Support" src="https://img.shields.io/badge/支持-TramperMonkey-blue" />
   </a>
 </div>
