@@ -8,6 +8,9 @@
 // @match        *://www.zhihu.com/question/*/answer/*
 // @match        *://www.zhihu.com/zvideo/*
 // @match        *://www.zhihu.com/column/*
+// @match        *://blog.csdn.net/*/article/*
+// @match        *://blog.csdn.net/*/category_*.html
+// @match        *://mp.weixin.qq.com/s*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
 // @grant        GM_addStyle
@@ -355,6 +358,88 @@
         alert('Column download is not supported in the browser extension. Please use the server application for downloading columns.');
     };
 
+    // Download CSDN article function
+    const downloadCsdnArticle = async () => {
+        try {
+            showProgress('Processing CSDN article...');
+
+            const title = document.querySelector('h1.title-article')?.textContent.trim() || 'Untitled';
+            const content = document.querySelector('div#content_views');
+            const authorElement = document.querySelector('div.bar-content');
+            let author = 'Unknown';
+            let date = '';
+            
+            if (authorElement && authorElement.querySelectorAll('a').length > 0) {
+                author = authorElement.querySelectorAll('a')[0].textContent.trim();
+                // Try to get date from time element or text content
+                const timeElement = authorElement.querySelector('span.time');
+                if (timeElement) {
+                    const dateMatch = timeElement.textContent.match(/(\d{4}-\d{2}-\d{2})/);
+                    date = dateMatch ? dateMatch[1] : '';
+                }
+            }
+            
+            const url = window.location.href;
+
+            if (!content) {
+                throw new Error('Could not find content on this page');
+            }
+
+            // Process content
+            const markdown = processContent(title, content, author, date, url);
+
+            // Download the markdown
+            const filename = downloadMarkdownFile(title, author, markdown, date);
+            showProgress(`Downloaded: ${filename}`, 3000);
+
+        } catch (error) {
+            console.error('Error downloading CSDN article:', error);
+            showProgress(`Error: ${error.message}`, 3000);
+        }
+    };
+
+    // Download CSDN category function
+    const downloadCsdnCategory = () => {
+        alert('CSDN Category download is not supported in the browser extension. Please use the server application for downloading categories.');
+    };
+
+    // Download WeChat article function
+    const downloadWechatArticle = async () => {
+        try {
+            showProgress('Processing WeChat article...');
+
+            const title = document.querySelector('h1.rich_media_title')?.textContent.trim() || 'Untitled';
+            const content = document.querySelector('div.rich_media_content');
+            const authorElement = document.querySelector('strong.rich_media_meta_text');
+            const author = authorElement?.textContent.trim() || 'Unknown';
+            
+            // Try to get date from publish time element
+            const publishTime = document.querySelector('em#publish_time');
+            let date = '';
+            if (publishTime) {
+                const dateMatch = publishTime.textContent.match(/(\d{4}-\d{2}-\d{2})/);
+                date = dateMatch ? dateMatch[1] : '';
+            }
+            
+            const url = window.location.href;
+
+            if (!content) {
+                throw new Error('Could not find content on this page');
+            }
+
+            // Process content
+            const markdown = processContent(title, content, author, date, url);
+
+            // Download the markdown
+            const filename = downloadMarkdownFile(title, author, markdown, date);
+            showProgress(`Downloaded: ${filename}`, 3000);
+
+        } catch (error) {
+            console.error('Error downloading WeChat article:', error);
+            showProgress(`Error: ${error.message}`, 3000);
+        }
+    };
+
     // Show progress message
     const showProgress = (message, timeout = 0) => {
         let progress = document.querySelector('.zhihu-dl-progress');
@@ -477,6 +562,12 @@
             downloadVideo();
         } else if (url.includes('zhihu.com/column/')) {
             downloadColumn();
+        } else if (url.includes('blog.csdn.net') && url.includes('/article/')) {
+            downloadCsdnArticle();
+        } else if (url.includes('blog.csdn.net') && url.includes('/category_')) {
+            downloadCsdnCategory();
+        } else if (url.includes('mp.weixin.qq.com/s')) {
+            downloadWechatArticle();
         } else {
             alert('This page type is not supported for download.');
         }
