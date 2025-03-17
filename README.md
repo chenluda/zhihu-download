@@ -21,11 +21,11 @@
   </a>
 </div>
 
-<div align="center">
-  <img src="https://github.com/user-attachments/assets/e3faef9a-99c5-43d7-b91b-5a0bdd71fc0e" alt="Zhihu Article">
-</div>
-
 ## 1. 特点
+
+⭐ **结合油猴丝滑转换**：通过 Tampermonkey 脚本实现知乎页面丝滑转换。
+
+https://github.com/user-attachments/assets/490e2c42-df4c-428d-9d4e-09b35461b47a
 
 ⭐ **支持最新 HTML 结构**：持续更新以适应知乎平台的变化。
 
@@ -38,6 +38,12 @@
 ⭐ **完善的数学公式支持**：特别优化了数学公式的提取和转换，保证了复杂内容的准确性和完整性。
 
 ⭐ **图片下载与处理**：处理并优化文章中的图片链接，确保转换后的 Markdown 文件包含原文的所有视觉元素。
+
+<br />
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/e3faef9a-99c5-43d7-b91b-5a0bdd71fc0e" alt="Zhihu Article">
+</div>
 
 ## 2. 运行环境
 
