@@ -11,6 +11,7 @@
 // @match        *://blog.csdn.net/*/article/*
 // @match        *://blog.csdn.net/*/category_*.html
 // @match        *://mp.weixin.qq.com/s*
+// @match        *://juejin.cn/post/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
 // @grant        GM_addStyle
@@ -457,6 +458,41 @@
         }
     };
 
+    // Download Juejin article function
+    const downloadJuejinArticle = async () => {
+        try {
+            showProgress('Processing Juejin article...');
+
+            const title = document.querySelector('h1.article-title')?.textContent.trim() || 'Untitled';
+            const content = document.querySelector('div.main');
+            const authorElement = document.querySelector('span.name');
+            let author = 'Unknown';
+            if (authorElement) {
+                author = authorElement.textContent.trim();
+            }
+            
+            // Extract date from time element
+            const date = document.querySelector('time.time')?.textContent.trim() || '';
+            
+            const url = window.location.href;
+
+            if (!content) {
+                throw new Error('Could not find content on this page');
+            }
+
+            // Process content
+            const markdown = processContent(title, content, author, date, url);
+
+            // Download the markdown
+            const filename = downloadMarkdownFile(title, author, markdown, date);
+            showProgress(`Downloaded: ${filename}`, 3000);
+
+        } catch (error) {
+            console.error('Error downloading Juejin article:', error);
+            showProgress(`Error: ${error.message}`, 3000);
+        }
+    };
+
     // Show progress message
     const showProgress = (message, timeout = 0) => {
         let progress = document.querySelector('.zhihu-dl-progress');
@@ -585,6 +621,8 @@
             downloadCsdnCategory();
         } else if (url.includes('mp.weixin.qq.com/s')) {
             downloadWechatArticle();
+        } else if (url.includes('juejin.cn/post/')) {
+            downloadJuejinArticle();
         } else {
             alert('This page type is not supported for download.');
         }

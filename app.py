@@ -7,6 +7,7 @@ from flask import Flask, request, render_template, send_file, jsonify
 from main_zhihu import ZhihuParser
 from main_csdn import CsdnParser
 from main_weixin import WeixinParser
+from main_juejin import JuejinParser
 import json
 import zipfile
 
@@ -54,7 +55,8 @@ def index():
         parser_map = {
             "csdn": (CsdnParser(keep_logs=keep_logs), "csdn"),
             "zhihu": (ZhihuParser(cookies, keep_logs=keep_logs), "zhihu"),
-            "weixin": (WeixinParser(keep_logs=keep_logs), "weixin")
+            "weixin": (WeixinParser(keep_logs=keep_logs), "weixin"),
+            "juejin": (JuejinParser(keep_logs=keep_logs), "juejin")
         }
 
         try:
@@ -115,6 +117,7 @@ def get_logs():
         'zhihu': './logs/zhihu_download.log',
         'csdn': './logs/csdn_download.log',
         'weixin': './logs/weixin_download.log',
+        'juejin': './logs/juejin_download.log',
     }
 
     if log_type not in log_files:

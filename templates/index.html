@@ -286,6 +286,8 @@
             websiteSelect.value = "csdn";
           } else if (url.hostname.includes("mp.weixin")) {
             websiteSelect.value = "weixin";
+          } else if (url.hostname.includes("juejin")) {
+            websiteSelect.value = "juejin";
           } else {
             websiteSelect.value = "";
           }
@@ -374,6 +376,7 @@
               <option value="zhihu" selected>知乎</option>
               <option value="csdn">CSDN</option>
               <option value="weixin">微信公众号</option>
+              <option value="juejin">稀土掘金</option>
             </select>
           </div>
         </div>
@@ -425,6 +428,7 @@
             <option value="zhihu">知乎下载日志</option>
             <option value="csdn">CSDN下载日志</option>
             <option value="weixin">微信公众号下载日志</option>
+            <option value="juejin">稀土掘金下载日志</option>
           </select>
           <button type="button" class="refresh-button" onclick="fetchLogs()">
             <i class="fas fa-sync-alt"></i> 刷新
