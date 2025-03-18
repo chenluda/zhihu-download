@@ -408,17 +408,34 @@
         try {
             showProgress('Processing WeChat article...');
 
-            const title = document.querySelector('h1.rich_media_title')?.textContent.trim() || 'Untitled';
-            const content = document.querySelector('div.rich_media_content');
-            const authorElement = document.querySelector('strong.rich_media_meta_text');
-            const author = authorElement?.textContent.trim() || 'Unknown';
+            const title = document.querySelector('h1#activity-name')?.textContent.trim() || 'Untitled';
+            const content = document.querySelector('div#js_content');
             
-            // Try to get date from publish time element
-            const publishTime = document.querySelector('em#publish_time');
+            // Updated author extraction - looking in meta_content div first for links
+            const authorElement = document.querySelector('div#meta_content');
+            let author = 'Unknown';
+            if (authorElement && authorElement.querySelectorAll('a').length > 0) {
+                author = authorElement.querySelectorAll('a')[0].textContent.trim();
+            }
+            
+            // Extract date from script tags (similar to Python version)
             let date = '';
-            if (publishTime) {
-                const dateMatch = publishTime.textContent.match(/(\d{4}-\d{2}-\d{2})/);
-                date = dateMatch ? dateMatch[1] : '';
+            try {
+                const scripts = document.querySelectorAll('script[type="text/javascript"]');
+                for (const script of scripts) {
+                    if (script.textContent.includes('var ct =')) {
+                        const match = script.textContent.match(/var ct = "([^"]+)"/);
+                        if (match && match[1]) {
+                            // Convert Unix timestamp to YYYY-MM-DD format
+                            const timestamp = parseInt(match[1]) * 1000;
+                            const dateObj = new Date(timestamp);
+                            date = dateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+                            break;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error extracting date:', err);
             }
             
             const url = window.location.href;
