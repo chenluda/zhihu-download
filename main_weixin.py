@@ -137,16 +137,6 @@ class WeixinParser:
                     img_name = f"img_{img_index:02d}{ext}"
                     img_path = f"{markdown_title}/{img_name}"
 
-                    extensions = ['.jpg', '.jpeg', '.png',
-                                '.gif']  # 可以在此列表中添加更多的图片格式
-
-                    # 如果图片链接中图片后缀后面还有字符串则直接截停
-                    for ext in extensions:
-                        index = img_path.find(ext)
-                        if index != -1:
-                            img_path = img_path[:index + len(ext)]
-                            break  # 找到第一个匹配的格式后就跳出循环
-
                     img["src"] = img_path
 
                     # 下载图片并保存到本地

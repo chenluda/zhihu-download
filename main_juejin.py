@@ -126,26 +126,11 @@ class JuejinParser:
                     parsed_url = urllib.parse.urlparse(img_url)
                     query_params = urllib.parse.parse_qs(parsed_url.query)
 
-                    # 确定图片扩展名，优先从查询参数中获取
-                    if 'wx_fmt' in query_params:
-                        ext = f".{query_params['wx_fmt'][0]}"
-                    else:
-                        # 如果没有查询参数，则尝试从路径部分获取扩展名
-                        ext = os.path.splitext(parsed_url.path)[1] or '.jpg'  # 默认使用.jpg
+                    ext = '.jpg'  # 默认使用.jpg
 
                     # 提取图片格式
                     img_name = f"img_{img_index:02d}{ext}"
                     img_path = f"{markdown_title}/{img_name}"
-
-                    extensions = ['.jpg', '.jpeg', '.png',
-                                '.gif']  # 可以在此列表中添加更多的图片格式
-
-                    # 如果图片链接中图片后缀后面还有字符串则直接截停
-                    for ext in extensions:
-                        index = img_path.find(ext)
-                        if index != -1:
-                            img_path = img_path[:index + len(ext)]
-                            break  # 找到第一个匹配的格式后就跳出循环
 
                     img["src"] = img_path
 
