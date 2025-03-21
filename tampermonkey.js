@@ -83,18 +83,6 @@
         return match ? match[1] : '';
     };
 
-    // Insert new line after an element
-    const insertNewLine = (element, count) => {
-        for (let i = 0; i < count; i++) {
-            const br = document.createElement('br');
-            if (element.nextSibling) {
-                element.parentNode.insertBefore(br, element.nextSibling);
-            } else {
-                element.parentNode.appendChild(br);
-            }
-        }
-    };
-
     // Create a Turndown service instance for HTML to Markdown conversion
     const createTurndownService = () => {
         const service = new TurndownService({
